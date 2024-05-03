@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block title %} Account {% endblock %}
+
+{% block main %}
+    <h1>Account Information</h1>
+    <p><strong>Name:</strong> {{ current_user.name}}</p>
+    <p><strong>Surname:</strong> {{ current_user.lastname }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+{% endblock %}
