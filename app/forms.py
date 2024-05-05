@@ -2,6 +2,8 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, DecimalField, DateField, SelectField, TextAreaField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo,  Length, NumberRange
 import sqlalchemy as sa
+from wtforms.widgets import HiddenInput
+
 from app import db
 from app.models import User, Category, Expense
 
@@ -33,7 +35,7 @@ class ExpenseForm(FlaskForm):
     date = DateField('Date', validators=[DataRequired()])
     description = TextAreaField('Description')
     submit = SubmitField('Add')
-    delete = SubmitField('Delete')
+    delete = SubmitField('Delete', widget=HiddenInput())
 
     def __init__(self, *args, **kwargs):
         super(ExpenseForm, self).__init__(*args, **kwargs)
@@ -50,6 +52,7 @@ class UpdateExpenseForm(FlaskForm):
     date = DateField('Date', validators=[DataRequired()])
     description = TextAreaField('Description')
     submit = SubmitField('Update')
+    delete = SubmitField('Delete', widget=HiddenInput())
 
     def __init__(self, *args, **kwargs):
         super(UpdateExpenseForm, self).__init__(*args, **kwargs)
@@ -58,3 +61,12 @@ class UpdateExpenseForm(FlaskForm):
     def validate_category(self, category):
         if not Category.query.get(category.data):
             raise ValidationError('Invalid category.')
+
+class UpdateAccountForm(FlaskForm):
+    firstname = StringField('First Name', validators=[DataRequired()])
+    lastname = StringField('Last Name', validators=[DataRequired()])
+    submit = SubmitField('Update Account')
+
+class AddCategoryForm(FlaskForm):
+    categoryName = StringField('Category Name', validators=[DataRequired()])
+    submit = SubmitField('Add Category')

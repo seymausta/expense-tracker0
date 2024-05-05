@@ -1,10 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %} Account {% endblock %}
+{% block title %}
+    Account
+{% endblock %}
 
-{% block main %}
+{% block content %}
+<div class="container">
     <h1>Account Information</h1>
-    <p><strong>Name:</strong> {{ current_user.name}}</p>
-    <p><strong>Surname:</strong> {{ current_user.lastname }}</p>
-    <p><strong>Email:</strong> {{ user.email }}</p>
+    <form method="post" action="{{ url_for('account') }}">
+        <div class="mb-3">
+            <label for="firstname" class="form-label">First Name</label>
+            <input type="text" class="form-control" id="firstname" name="firstname" value="{{ form.firstname.data }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="lastname" class="form-label">Last Name</label>
+            <input type="text" class="form-control" id="lastname" name="lastname" value="{{ form.lastname.data }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">{{ form.submit()}}</button>
+    </form>
+</div>
 {% endblock %}

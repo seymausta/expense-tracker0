@@ -1,6 +1,6 @@
 from app import app,db
 from flask import render_template, flash, redirect, url_for, request, abort
-from app.forms import LoginForm, RegistrationForm, ExpenseForm, UpdateExpenseForm
+from app.forms import LoginForm, RegistrationForm, ExpenseForm, UpdateExpenseForm, UpdateAccountForm, AddCategoryForm
 from flask_login import current_user, login_user, logout_user, login_required
 import sqlalchemy as sa
 from app.models import User, Expense, Category
@@ -104,8 +104,41 @@ def update_expense(expense_id):
     expense = Expense.query.get_or_404(expense_id)
     form = UpdateExpenseForm(obj=expense)
     if form.validate_on_submit():
-        form.populate_obj(expense)
+        expense.name = form.name.data
+        expense.amount = form.amount.data
+        expense.category_id = form.category.data
+        expense.date = form.date.data
+        expense.description = form.description.data
         db.session.commit()
-        flash('Expense updated successfully!', 'success')
+        flash('Your expense has been updated!', 'success')
         return redirect(url_for('expense_history'))
     return render_template('expense_history.html', title='Update Expense', form=form)
+
+
+@app.route('/categories', methods=['GET', 'POST'])
+def categories():
+    form = AddCategoryForm()
+    if form.validate_on_submit():
+        category_name = form.categoryName.data
+        new_category = Category(name=category_name)
+        db.session.add(new_category)
+        db.session.commit()
+        flash('New category added successfully!', 'success')
+        return redirect(url_for('categories'))
+    categories = Category.query.all()
+    return render_template('categories.html', title='Spend Categories', form=form, categories=categories)
+
+@app.route('/account', methods=['GET', 'POST'])
+@login_required
+def account():
+    form = UpdateAccountForm()
+    if form.validate_on_submit():
+        current_user.firstname = form.firstname.data
+        current_user.lastname = form.lastname.data
+        db.session.commit()
+        flash('Your account has been updated!', 'success')
+        return redirect(url_for('index'))
+    elif request.method == 'GET':
+        form.firstname.data = current_user.firstname
+        form.lastname.data = current_user.lastname
+    return render_template('account.html', title='Account', form=form)

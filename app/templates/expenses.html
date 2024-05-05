@@ -28,3 +28,18 @@
       </div>
     </div>
 {% endblock %}
+
+{% block style %}
+<style>
+    .card {
+        height: 100%;
+    }
+
+    .card-body {
+        height: 100%; /* Kart içeriğinin yüksekliğini kartın yüksekliğine eşitle */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between; /* İçeriği üstten alta doğru dağıt */
+    }
+</style>
+{% endblock %}
