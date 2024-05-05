@@ -8,6 +8,7 @@
 <div class="container">
     <h1>Account Information</h1>
     <form method="post" action="{{ url_for('account') }}">
+        {{ form.hidden_tag() }}
         <div class="mb-3">
             <label for="firstname" class="form-label">First Name</label>
             <input type="text" class="form-control" id="firstname" name="firstname" value="{{ form.firstname.data }}" required>
@@ -16,7 +17,7 @@
             <label for="lastname" class="form-label">Last Name</label>
             <input type="text" class="form-control" id="lastname" name="lastname" value="{{ form.lastname.data }}" required>
         </div>
-        <button type="submit" class="btn btn-primary">{{ form.submit()}}</button>
+        {{ form.submit(class="btn btn-primary") }}
     </form>
 </div>
 {% endblock %}
