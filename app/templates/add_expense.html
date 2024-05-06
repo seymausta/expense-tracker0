@@ -1,46 +1,50 @@
 {% extends "base.html" %}
 
-{% block title %} Add Expense {% endblock %}
+{% block title %}
+    Add Expense
+{% endblock %}
 
 {% block content %}
-<h1>Add Expense</h1>
-<form method="post">
-    {{ form.hidden_tag() }}
-    <p>
-        {{ form.name.label }}<br>
-        {{ form.name(size=32) }}
-        {% for error in form.name.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.amount.label }}<br>
-        {{ form.amount }}
-        {% for error in form.amount.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.category.label }}<br>
-        {{ form.category }}
-        {% for error in form.category.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.date.label }}<br>
-        {{ form.date }}
-        {% for error in form.date.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.description.label }}<br>
-        {{ form.description(cols=50, rows=5) }}
-        {% for error in form.description.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-        {% endfor %}
-    </p>
-    <p>{{ form.submit() }}</p>
-</form>
+    <div class="container">
+        <h1 class="fw-bolder text-center mb-4">Add Expense</h1>
+        <form method="post">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                {{ form.name(size=32, class="form-control") }}
+                {% for error in form.name.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                <label for="amount" class="form-label">Amount</label>
+                {{ form.amount(class="form-control") }}
+                {% for error in form.amount.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                <label for="category" class="form-label">Category</label>
+                {{ form.category(class="form-control") }}
+                {% for error in form.category.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                <label for="date" class="form-label">Date</label>
+                {{ form.date(class="form-control") }}
+                {% for error in form.date.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                {{ form.description(cols=50, rows=5, class="form-control") }}
+                {% for error in form.description.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <button class="btn btn-primary btn-lg d-block mx-auto" type="submit">Submit</button>
+        </form>
+    </div>
 {% endblock %}

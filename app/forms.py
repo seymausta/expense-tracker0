@@ -54,10 +54,18 @@ class UpdateExpenseForm(FlaskForm):
     submit = SubmitField('Update')
     delete = SubmitField('Delete', widget=HiddenInput())
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, expense, *args, **kwargs):
         super(UpdateExpenseForm, self).__init__(*args, **kwargs)
+        self.expense = expense
         self.category.choices = [(category.id, category.name) for category in Category.query.all()]
+        self.populate_form_fields()
 
+    def populate_form_fields(self):
+        self.name.data = self.expense.name
+        self.amount.data = self.expense.amount
+        self.category.data = self.expense.category_id
+        self.date.data = self.expense.date
+        self.description.data = self.expense.description
     def validate_category(self, category):
         if not Category.query.get(category.data):
             raise ValidationError('Invalid category.')

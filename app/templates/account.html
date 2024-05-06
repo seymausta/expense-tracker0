@@ -5,19 +5,31 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Account Information</h1>
-    <form method="post" action="{{ url_for('account') }}">
-        {{ form.hidden_tag() }}
-        <div class="mb-3">
-            <label for="firstname" class="form-label">First Name</label>
-            <input type="text" class="form-control" id="firstname" name="firstname" value="{{ form.firstname.data }}" required>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 rounded-4 p-4">
+                    <div class="card-body">
+                        <h1 class="fw-bolder text-center mb-4">Account Information</h1>
+                        <form method="post" action="{{ url_for('account') }}">
+                            {{ form.hidden_tag() }}
+                            <div class="mb-3">
+                                <label for="firstname" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="firstname" name="firstname" value="{{ form.firstname.data }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="lastname" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="lastname" name="lastname" value="{{ form.lastname.data }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email" value="example@example.com" readonly>
+                            </div>
+                            {{ form.submit(class="btn btn-primary btn-lg d-block mx-auto") }}
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="lastname" class="form-label">Last Name</label>
-            <input type="text" class="form-control" id="lastname" name="lastname" value="{{ form.lastname.data }}" required>
-        </div>
-        {{ form.submit(class="btn btn-primary") }}
-    </form>
-</div>
+    </div>
 {% endblock %}

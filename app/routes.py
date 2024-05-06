@@ -98,11 +98,13 @@ def delete_expense(expense_id):
     flash('Expense deleted successfully!', 'success')
     return redirect(url_for('expense_history'))
 
+
 @app.route('/update_expense/<int:expense_id>', methods=['GET', 'POST'])
 @login_required
 def update_expense(expense_id):
     expense = Expense.query.get_or_404(expense_id)
-    form = UpdateExpenseForm(obj=expense)
+    form = UpdateExpenseForm(expense=expense)  # Expense objesini form başlatılırken geçirin.
+
     if form.validate_on_submit():
         expense.name = form.name.data
         expense.amount = form.amount.data
@@ -112,7 +114,9 @@ def update_expense(expense_id):
         db.session.commit()
         flash('Your expense has been updated!', 'success')
         return redirect(url_for('expense_history'))
+
     return render_template('expense_history.html', title='Update Expense', form=form)
+
 
 
 @app.route('/categories', methods=['GET', 'POST'])
