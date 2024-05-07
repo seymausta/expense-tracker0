@@ -78,14 +78,33 @@ def expenses():
 
     return render_template("expenses.html", title='Manage Expenses')
 
+
 @app.route('/expense_history', methods=['GET'])
 @login_required
 def expense_history():
     form = ExpenseForm()
     expenses = Expense.query.filter_by(user_id=current_user.id).all()
-    categories = Category.query.all()  # Kategorileri veritabanından al
-    category_dict = {category.id: category.name for category in categories}  # Kategorileri bir sözlükte sakla
-    return render_template('expense_history.html', title='Expenses', expenses=expenses, category_dict=category_dict,form=form)
+    categories = Category.query.all()
+    category_dict = {category.id: category.name for category in categories}
+
+    page = request.args.get('page', 1, type=int)
+    per_page = app.config['EXPENSES_PER_PAGE']
+    pagination = Expense.query.filter_by(user_id=current_user.id).paginate(page=page, per_page=per_page, error_out=False)
+    expenses = pagination.items
+
+    total_pages = pagination.pages
+    current_page = pagination.page
+
+    # Sayfa numaralarını oluştur
+    page_nums = list(range(1, total_pages + 1))
+
+    # Önceki ve sonraki sayfa URL'lerini oluştur
+    prev_url = url_for('expense_history', page=current_page - 1) if pagination.has_prev else None
+    next_url = url_for('expense_history', page=current_page + 1) if pagination.has_next else None
+
+    return render_template('expense_history.html', title='Expenses', expenses=expenses,
+                           category_dict=category_dict, form=form,
+                           prev_url=prev_url, next_url=next_url, page_nums=page_nums, current_page=current_page)
 
 @app.route('/delete_expense/<int:expense_id>', methods=['POST'])
 @login_required
@@ -106,14 +125,21 @@ def update_expense(expense_id):
     form = UpdateExpenseForm(expense=expense)  # Expense objesini form başlatılırken geçirin.
 
     if form.validate_on_submit():
+        print("Before update:", expense.name, expense.amount)  # Güncellemeden önceki değerler
         expense.name = form.name.data
         expense.amount = form.amount.data
         expense.category_id = form.category.data
         expense.date = form.date.data
         expense.description = form.description.data
-        db.session.commit()
-        flash('Your expense has been updated!', 'success')
-        return redirect(url_for('expense_history'))
+        print("After update:", expense.name, expense.amount)  # Güncellemeden sonraki değerler
+        try:
+            db.session.commit()
+            flash('Your expense has been updated!', 'success')
+            return redirect(url_for('expense_history'))
+        except Exception as e:
+            flash('An error occurred while updating the expense.', 'danger')
+            print('Error:', e)  # Hatanın ayrıntılarını konsola yazdır
+            db.session.rollback()  # Veritabanı değişikliklerini geri al
 
     return render_template('expense_history.html', title='Update Expense', form=form)
 
@@ -121,6 +147,11 @@ def update_expense(expense_id):
 
 @app.route('/categories', methods=['GET', 'POST'])
 def categories():
+    page = request.args.get('page', 1, type=int)
+    categories = Category.query.paginate(page=page, per_page=app.config['CATEGORY_PER_PAGE'], error_out=False)
+    next_url = url_for('categories', page=categories.next_num) if categories.has_next else None
+    prev_url = url_for('categories', page=categories.prev_num) if categories.has_prev else None
+
     form = AddCategoryForm()
     if form.validate_on_submit():
         category_name = form.categoryName.data
@@ -129,8 +160,9 @@ def categories():
         db.session.commit()
         flash('New category added successfully!', 'success')
         return redirect(url_for('categories'))
-    categories = Category.query.all()
-    return render_template('categories.html', title='Spend Categories', form=form, categories=categories)
+
+    return render_template('categories.html', title='Spend Categories', form=form, categories=categories.items,
+                           next_url=next_url, prev_url=prev_url)
 
 @app.route('/account', methods=['GET', 'POST'])
 @login_required
