@@ -66,6 +66,13 @@ class UpdateExpenseForm(FlaskForm):
         self.category.data = self.expense.category_id
         self.date.data = self.expense.date
         self.description.data = self.expense.description
+
+        print("Expense Name:", self.expense.name)
+        print("Expense Amount:", self.expense.amount)
+        print("Expense Category ID:", self.expense.category_id)
+        print("Expense Date:", self.expense.date)
+        print("Expense Description:", self.expense.description)
+
     def validate_category(self, category):
         if not Category.query.get(category.data):
             raise ValidationError('Invalid category.')
@@ -78,3 +85,13 @@ class UpdateAccountForm(FlaskForm):
 class AddCategoryForm(FlaskForm):
     categoryName = StringField('Category Name', validators=[DataRequired()])
     submit = SubmitField('Add Category')
+
+class ResetPasswordRequestForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Request Password Reset')
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Password', validators=[DataRequired()])
+    password2 = PasswordField(
+        'Repeat Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Request Password Reset')

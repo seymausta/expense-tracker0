@@ -8,7 +8,7 @@
       {% if current_user.is_anonymous %}
       <span class="d-flex">
         <a class="btn btn-light ms-3" href="{{ url_for('login') }}">Login</a>&nbsp;
-        <a class="btn btn-light ms-3" href="{{ url_for('register') }}">Sign Up</a>
+        <a class="btn btn-light ms-3" href="{{ url_for('register') }}">Register</a>
       </span>
     {% else %}
       <ul class="navbar-nav">
@@ -30,8 +30,8 @@
       </ul>
     </div>
       <span class="d-flex">
-        <a class="btn btn-light ms-3" href="/account">Your Account</a>
-        <a class="btn btn-light ms-3" href="{{ url_for('logout') }}">Çıkış</a>
+        <a class="btn btn-light ms-3" href="/account">User Profile</a>
+        <a class="btn btn-light ms-3" href="{{ url_for('logout') }}">Logout</a>
       </span>
 
     {% endif %}

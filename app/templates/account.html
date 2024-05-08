@@ -1,35 +1,65 @@
 {% extends "base.html" %}
 
 {% block title %}
-    Account
+Account
 {% endblock %}
 
 {% block content %}
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card shadow-sm border-0 rounded-4 p-4">
-                    <div class="card-body">
-                        <h1 class="fw-bolder text-center mb-4">Account Information</h1>
-                        <form method="post" action="{{ url_for('account') }}">
-                            {{ form.hidden_tag() }}
-                            <div class="mb-3">
-                                <label for="firstname" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstname" name="firstname" value="{{ form.firstname.data }}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="lastname" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastname" name="lastname" value="{{ form.lastname.data }}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="email" name="email" value="example@example.com" readonly>
-                            </div>
-                            {{ form.submit(class="btn btn-primary btn-lg d-block mx-auto") }}
-                        </form>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+                <!-- Delete Account Button -->
+                    <div class="text-end mt-3">
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#deleteAccountModal">Delete Account</button>
                     </div>
+            <div class="card shadow-sm border-0 rounded-4 p-4">
+                <div class="card-body">
+                    <h1 class="fw-bolder text-center mb-4">Account Information</h1>
+                    <form method="post" action="{{ url_for('account') }}">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            <label for="firstname" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="firstname" name="firstname"
+                                value="{{ form.firstname.data }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="lastname" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="lastname" name="lastname"
+                                value="{{ form.lastname.data }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" readonly>
+                        </div>
+                        {{ form.submit(class="btn btn-primary btn-lg d-block mx-auto") }}
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteAccountModalLabel">Delete Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete your account? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('delete_account') }}" method="post">
+                    <button type="submit" class="btn btn-danger">Delete Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

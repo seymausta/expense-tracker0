@@ -45,11 +45,10 @@ Spend Categories
     <div class="row row-cols-1 row-cols-md-3 g-4">
         {% for category in categories %}
         <div class="col">
-            <div class="card h-100 border-0" onclick="window.location.href='{{ category.url }}';"
-                 style="cursor: pointer;">
-                <div class="card-body d-flex align-items-center justify-content-center">
+            <div class="card h-100 border-0">
+                <a href="{{ url_for('category_expenses', category_id=category.id) }}" class="card-body d-flex align-items-center justify-content-center text-decoration-none" style="color: inherit;">
                     <p class="card-text m-0 fw-bold">{{ category.name }}</p>
-                </div>
+                </a>
             </div>
         </div>
         {% endfor %}
@@ -83,6 +82,11 @@ Spend Categories
         </div>
     </div>
 </div>
+<script>
+    function redirectToCategoryExpenses(categoryId) {
+        window.location.href = "/category/" + categoryId + "/expenses";
+    }
+</script>
 {% endblock %}
 {% block styles %}
 <style>

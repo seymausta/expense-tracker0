@@ -1,10 +1,12 @@
 from app import app,db
 from flask import render_template, flash, redirect, url_for, request, abort
-from app.forms import LoginForm, RegistrationForm, ExpenseForm, UpdateExpenseForm, UpdateAccountForm, AddCategoryForm
+from app.forms import LoginForm, RegistrationForm, ExpenseForm, UpdateExpenseForm, UpdateAccountForm, AddCategoryForm, \
+    ResetPasswordRequestForm, ResetPasswordForm
 from flask_login import current_user, login_user, logout_user, login_required
 import sqlalchemy as sa
 from app.models import User, Expense, Category
 from urllib.parse import urlsplit
+from app.email import send_password_reset_email
 
 
 @app.route('/')
@@ -125,12 +127,17 @@ def update_expense(expense_id):
     form = UpdateExpenseForm(expense=expense)  # Expense objesini form başlatılırken geçirin.
 
     if form.validate_on_submit():
+        print("Form validation successful!")
         print("Before update:", expense.name, expense.amount)  # Güncellemeden önceki değerler
         expense.name = form.name.data
         expense.amount = form.amount.data
         expense.category_id = form.category.data
         expense.date = form.date.data
         expense.description = form.description.data
+
+        print("Name:", expense.name)
+        print("Amount:", expense.amount)
+
         print("After update:", expense.name, expense.amount)  # Güncellemeden sonraki değerler
         try:
             db.session.commit()
@@ -178,3 +185,49 @@ def account():
         form.firstname.data = current_user.firstname
         form.lastname.data = current_user.lastname
     return render_template('account.html', title='Account', form=form)
+
+@app.route('/reset_password_request', methods=['GET', 'POST'])
+def reset_password_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        user = db.session.scalar(
+            sa.select(User).where(User.email == form.email.data))
+        if user:
+            send_password_reset_email(user)
+        flash('Check your email for the instructions to reset your password')
+        return redirect(url_for('login'))
+    return render_template('reset_password_request.html',
+                           title='Reset Password', form=form)
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    user = User.verify_reset_password_token(token)
+    if not user:
+        return redirect(url_for('index'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        user.set_password(form.password.data)
+        db.session.commit()
+        flash('Your password has been reset.')
+        return redirect(url_for('login'))
+    return render_template('reset_password.html', form=form)
+
+@app.route('/category/<int:category_id>/expenses')
+@login_required
+def category_expenses(category_id):
+    category = Category.query.get_or_404(category_id)
+    expenses = category.expenses
+    return render_template('category_expenses.html', title='Category Expenses', category=category, expenses=expenses)
+
+@app.route('/delete_account', methods=['POST'])
+@login_required
+def delete_account():
+    user = User.query.get(current_user.id)
+    db.session.delete(user)
+    db.session.commit()
+    flash('Your account has been deleted!', 'success')
+    return redirect(url_for('login'))
