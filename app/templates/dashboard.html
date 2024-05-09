@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}
+Dashboard
+{% endblock %}
+
+{% block content %}
+{% if last_five_expenses %}
+<div class="container">
+    <h1 class="my-4 fw-bolder text-center">Dashboard</h1>
+    <div class="row justify-content-center ">
+        <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+            <h2 class="my-4 fw-bolder ">Your Expenses</h2>
+            <div class="row row-cols-1 row-cols-md-4 g-4">
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title ">Remainly Income</h5>
+                            <p class="card-text">{{ total_spend_week }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title ">Total Yearly Spend</h5>
+                            <p class="card-text">{{ total_spend_year }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title ">Total Monthly Spending</h5>
+                            <p class="card-text">{{ total_spend_month }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Total Weekly Spend</h5>
+                        <p class="card-text">{{ total_spend_week }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <br><br><br>
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4 p-4">
+                <h2 class="fw-bolder  my-4">Last 5 Expenses</h2>
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Amount</th>
+                            <th>Category</th>
+                            <th>Date</th>
+                            <th>Description</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for expense in last_five_expenses %}
+                        <tr>
+                            <td>{{ expense.name }}</td>
+                            <td>{{ expense.amount }}</td>
+                            <td>{{ category_dict[expense.category_id] }}</td>
+                            <td>{{ expense.date }}</td>
+                            <td>{{ expense.description }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<p class="fw-bold text-center">You don't have any expenses yet 😥</p>
+{% endif %}
+{% endblock %}

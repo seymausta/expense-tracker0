@@ -5,12 +5,22 @@ Account
 {% endblock %}
 
 {% block content %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-primary alert-dismissible show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-8">
                 <!-- Delete Account Button -->
                     <div class="text-end mt-3">
-                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal"
                             data-bs-target="#deleteAccountModal">Delete Account</button>
                     </div>
             <div class="card shadow-sm border-0 rounded-4 p-4">
@@ -32,7 +42,7 @@ Account
                             <label for="email" class="form-label">Email Address</label>
                             <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" readonly>
                         </div>
-                        {{ form.submit(class="btn btn-primary btn-lg d-block mx-auto") }}
+                        {{ form.submit(class="btn btn-secondary btn-lg d-block mx-auto") }}
                     </form>
                 </div>
             </div>

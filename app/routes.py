@@ -1,3 +1,5 @@
+from datetime import datetime,timedelta
+from sqlalchemy import func
 from app import app,db
 from flask import render_template, flash, redirect, url_for, request, abort
 from app.forms import LoginForm, RegistrationForm, ExpenseForm, UpdateExpenseForm, UpdateAccountForm, AddCategoryForm, \
@@ -231,3 +233,51 @@ def delete_account():
     db.session.commit()
     flash('Your account has been deleted!', 'success')
     return redirect(url_for('login'))
+
+@app.route('/dashboard')
+def dashboard():
+    form = ExpenseForm()
+    def last_five_expenses():
+        return Expense.query.filter_by(user_id=current_user.id).order_by(Expense.date.desc()).limit(5).all()
+
+    def total_spend_week(user_id):
+        # Haftanın başlangıç tarihini bulma
+        current_date = datetime.now()
+        start_of_week = current_date - timedelta(days=current_date.weekday())
+
+        # Haftalık harcamaları sorgulama
+        total_weekly_spend = db.session.query(func.sum(Expense.amount)). \
+            filter(Expense.user_id == user_id). \
+            filter(Expense.date >= start_of_week).scalar()
+
+        return total_weekly_spend or 0
+
+    def total_spend_year(user_id):
+        # İçinde bulunulan yıl için harcamaları sorgulama
+        total_yearly_spend = db.session.query(func.sum(Expense.amount)). \
+            filter(Expense.user_id == user_id). \
+            filter(func.extract('year', Expense.date) == datetime.now().year).scalar()
+
+        return total_yearly_spend or 0
+
+    def total_spend_month(user_id):
+        # İçinde bulunulan ay için harcamaları sorgulama
+        total_monthly_spend = db.session.query(func.sum(Expense.amount)). \
+            filter(Expense.user_id == user_id). \
+            filter(func.extract('year', Expense.date) == datetime.now().year). \
+            filter(func.extract('month', Expense.date) == datetime.now().month).scalar()
+
+        return total_monthly_spend or 0
+
+    categories = Category.query.all()
+    category_dict = {category.id: category.name for category in categories}
+
+    last_five_expenses = last_five_expenses()
+    total_spend_week=total_spend_week(current_user.id)
+    total_spend_month = total_spend_month(current_user.id)
+    total_spend_year = total_spend_year(current_user.id)
+
+
+    return render_template('dashboard.html', title='Dashboard', last_five_expenses=last_five_expenses,
+                           total_spend_week=total_spend_week,total_spend_month=total_spend_month,
+                           total_spend_year=total_spend_year,category_dict=category_dict, form=form)

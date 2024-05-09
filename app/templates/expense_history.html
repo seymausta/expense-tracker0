@@ -5,6 +5,16 @@ Expenses
 {% endblock %}
 
 {% block content %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-success alert-dismissible show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
 {% if expenses %}
 <h1 class="fw-bolder text-center my-4">Expenses</h1>
 <div class="container">
