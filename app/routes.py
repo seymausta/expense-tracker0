@@ -1,12 +1,14 @@
+from calendar import calendar
+from collections import defaultdict
 from datetime import datetime,timedelta
 from sqlalchemy import func
 from app import app,db
-from flask import render_template, flash, redirect, url_for, request, abort
+from flask import render_template, flash, redirect, url_for, request, abort, jsonify
 from app.forms import LoginForm, RegistrationForm, ExpenseForm, UpdateExpenseForm, UpdateAccountForm, AddCategoryForm, \
-    ResetPasswordRequestForm, ResetPasswordForm
+    ResetPasswordRequestForm, ResetPasswordForm, BudgetForm
 from flask_login import current_user, login_user, logout_user, login_required
 import sqlalchemy as sa
-from app.models import User, Expense, Category
+from app.models import User, Expense, Category, Income
 from urllib.parse import urlsplit
 from app.email import send_password_reset_email
 
@@ -122,33 +124,22 @@ def delete_expense(expense_id):
     return redirect(url_for('expense_history'))
 
 
-@app.route('/update_expense/<int:expense_id>', methods=['GET', 'POST'])
+@app.route('/update_expense/<int:expense_id>', methods=['POST'])
 @login_required
 def update_expense(expense_id):
     expense = Expense.query.get_or_404(expense_id)
-    form = UpdateExpenseForm(expense=expense)  # Expense objesini form başlatılırken geçirin.
+    form = ExpenseForm()
 
     if form.validate_on_submit():
-        print("Form validation successful!")
-        print("Before update:", expense.name, expense.amount)  # Güncellemeden önceki değerler
         expense.name = form.name.data
         expense.amount = form.amount.data
         expense.category_id = form.category.data
         expense.date = form.date.data
         expense.description = form.description.data
 
-        print("Name:", expense.name)
-        print("Amount:", expense.amount)
-
-        print("After update:", expense.name, expense.amount)  # Güncellemeden sonraki değerler
-        try:
-            db.session.commit()
-            flash('Your expense has been updated!', 'success')
-            return redirect(url_for('expense_history'))
-        except Exception as e:
-            flash('An error occurred while updating the expense.', 'danger')
-            print('Error:', e)  # Hatanın ayrıntılarını konsola yazdır
-            db.session.rollback()  # Veritabanı değişikliklerini geri al
+        db.session.commit()
+        flash('Expense updated successfully!', 'success')
+        return redirect(url_for('expense_history'))
 
     return render_template('expense_history.html', title='Update Expense', form=form)
 
@@ -237,15 +228,16 @@ def delete_account():
 @app.route('/dashboard')
 def dashboard():
     form = ExpenseForm()
+
     def last_five_expenses():
         return Expense.query.filter_by(user_id=current_user.id).order_by(Expense.date.desc()).limit(5).all()
 
     def total_spend_week(user_id):
-        # Haftanın başlangıç tarihini bulma
+            # Haftanın başlangıç tarihini bulma
         current_date = datetime.now()
         start_of_week = current_date - timedelta(days=current_date.weekday())
 
-        # Haftalık harcamaları sorgulama
+            # Haftalık harcamaları sorgulama
         total_weekly_spend = db.session.query(func.sum(Expense.amount)). \
             filter(Expense.user_id == user_id). \
             filter(Expense.date >= start_of_week).scalar()
@@ -253,7 +245,7 @@ def dashboard():
         return total_weekly_spend or 0
 
     def total_spend_year(user_id):
-        # İçinde bulunulan yıl için harcamaları sorgulama
+            # İçinde bulunulan yıl için harcamaları sorgulama
         total_yearly_spend = db.session.query(func.sum(Expense.amount)). \
             filter(Expense.user_id == user_id). \
             filter(func.extract('year', Expense.date) == datetime.now().year).scalar()
@@ -261,7 +253,7 @@ def dashboard():
         return total_yearly_spend or 0
 
     def total_spend_month(user_id):
-        # İçinde bulunulan ay için harcamaları sorgulama
+            # İçinde bulunulan ay için harcamaları sorgulama
         total_monthly_spend = db.session.query(func.sum(Expense.amount)). \
             filter(Expense.user_id == user_id). \
             filter(func.extract('year', Expense.date) == datetime.now().year). \
@@ -269,15 +261,80 @@ def dashboard():
 
         return total_monthly_spend or 0
 
+
     categories = Category.query.all()
     category_dict = {category.id: category.name for category in categories}
 
     last_five_expenses = last_five_expenses()
-    total_spend_week=total_spend_week(current_user.id)
+    total_spend_week = total_spend_week(current_user.id)
     total_spend_month = total_spend_month(current_user.id)
     total_spend_year = total_spend_year(current_user.id)
 
-
     return render_template('dashboard.html', title='Dashboard', last_five_expenses=last_five_expenses,
-                           total_spend_week=total_spend_week,total_spend_month=total_spend_month,
-                           total_spend_year=total_spend_year,category_dict=category_dict, form=form)
+                               total_spend_week=total_spend_week, total_spend_month=total_spend_month,
+                               total_spend_year=total_spend_year, category_dict=category_dict,
+                               weekly_spending=weekly_spending, form=form)
+
+@app.route('/weekly_spending')
+def weekly_spending():
+    # Haftalık harcama verilerini hazırla
+    weekly_spending = []
+
+    # Son 4 haftanın başlangıç ve bitiş tarihlerini belirleme
+    today = datetime.today()
+    for i in range(4):
+        end_of_week = today - timedelta(days=(i * 7))
+        start_of_week = end_of_week - timedelta(days=6)
+
+        # Haftalık harcamaları sorgulama
+        weekly_spend = db.session.query(func.sum(Expense.amount)). \
+            filter(Expense.user_id == current_user.id). \
+            filter(Expense.date >= start_of_week). \
+            filter(Expense.date <= end_of_week).scalar()
+
+        # Haftalık harcama miktarını sözlüğe ekleme
+        weekly_spending.append({
+            'start_of_week': start_of_week.strftime('%b %d'),
+            'end_of_week': end_of_week.strftime('%b %d'),
+            'amount': weekly_spend or 0  # Harcama miktarı 0 ise None yerine 0 olarak ayarlanır
+        })
+
+    # Grafik için gerekli verileri JSON formatında döndür
+    return jsonify(weekly_spending)
+
+@app.route('/monthly_spending')
+def monthly_spending():
+    monthly_spending = defaultdict(int)
+
+    # Şu anki yılın başlangıç tarihini al
+    current_year = datetime.now().year
+    start_of_year = datetime(current_year, 1, 1)
+
+    # Şu anki yılın bitiş tarihini al
+    end_of_year = datetime(current_year, 12, 31)
+
+    # Kullanıcının tüm harcamalarını al
+    expenses = Expense.query.filter_by(user_id=current_user.id).filter(
+        Expense.date >= start_of_year,
+        Expense.date <= end_of_year
+    ).all()
+
+    # Aylık harcamaları topla
+    for expense in expenses:
+        monthly_key = expense.date.strftime('%b %Y')
+        monthly_spending[monthly_key] += expense.amount
+
+    # JSON formatında aylık harcama verilerini döndür
+    return jsonify(monthly_spending)
+
+@app.route('/budget', methods=['GET', 'POST'])
+def budget():
+    form = BudgetForm()
+    if form.validate_on_submit():
+        income = Income(name=form.name.data, amount=form.amount.data, date=form.date.data,user_id=current_user.id)
+        db.session.add(income)
+        db.session.commit()
+        flash('Income added successfully!', 'success')
+        return redirect(url_for('budget'))
+    incomes = Income.query.all()
+    return render_template('budget.html', title='Budget', form=form, incomes=incomes)

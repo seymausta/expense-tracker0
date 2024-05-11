@@ -5,7 +5,7 @@ Dashboard
 {% endblock %}
 
 {% block content %}
-{% if last_five_expenses %}
+
 <div class="container">
     <h1 class="my-4 fw-bolder text-center">Dashboard</h1>
     <div class="row justify-content-center ">
@@ -45,40 +45,116 @@ Dashboard
                 </div>
             </div>
         </div>
+        {% if last_five_expenses %}
+        <h2 class="fw-bolder  my-4">Last 5 Expenses</h2>
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+                <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Amount</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for expense in last_five_expenses %}
+                <tr>
+                    <td>{{ expense.name }}</td>
+                    <td>{{ expense.amount }}</td>
+                    <td>{{ category_dict[expense.category_id] }}</td>
+                    <td>{{ expense.date }}</td>
+                    <td>{{ expense.description }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="fw-bold text-center">You don't have any expenses yet 😥</p>
+        {% endif %}
 
-        <br><br><br>
-        <div class="col-lg-8">
-            <div class="card shadow-sm border-0 rounded-4 p-4">
-                <h2 class="fw-bolder  my-4">Last 5 Expenses</h2>
-                <div class="table-responsive">
-                    <table class="table table-hover table-bordered">
-                        <thead class="table-light">
-                        <tr>
-                            <th>Name</th>
-                            <th>Amount</th>
-                            <th>Category</th>
-                            <th>Date</th>
-                            <th>Description</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for expense in last_five_expenses %}
-                        <tr>
-                            <td>{{ expense.name }}</td>
-                            <td>{{ expense.amount }}</td>
-                            <td>{{ category_dict[expense.category_id] }}</td>
-                            <td>{{ expense.date }}</td>
-                            <td>{{ expense.description }}</td>
-                        </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <!-- Grafik için canvas elementi -->
+<div class="row justify-content">
+    <h2 class="my-4 fw-bolder">Weekly Spending</h2>
+    <div class="col-lg-8">
+        <canvas id="weeklySpendingChart" width="400" height="200"></canvas>
+    </div>
+</div>
+
+<br>
+<h2 class="my-4 fw-bolder">Monthly Spending</h2>
+<div class="row justify-content">
+    <div class=class="col-lg-8">
+        <div class="chart-container" style="position: relative; height:45vh">
+            <canvas id="monthlyChart"></canvas>
         </div>
     </div>
 </div>
-{% else %}
-<p class="fw-bold text-center">You don't have any expenses yet 😥</p>
-{% endif %}
+
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js kütüphanesini ekleyin -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        fetch('/weekly_spending')
+            .then(response => response.json())
+            .then(data => {
+                // Grafik için veri alma ve görselleştirme
+                var ctx = document.getElementById('weeklySpendingChart').getContext('2d');
+                var weeklySpendingChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(week => week.start_of_week + ' - ' + week.end_of_week),
+                        datasets: [{
+                            label: 'Total spending per week of the last 4 weeks',
+                            data: data.map(week => week.amount),
+                            fill: false,
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            });
+        fetch('/monthly_spending')
+        .then(response => response.json())
+        .then(data => {
+            // Grafik için veri alma ve görselleştirme
+            var ctx = document.getElementById('monthlyChart').getContext('2d');
+            var monthlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        label: 'Monthly Spending',
+                        data: Object.values(data),
+                        backgroundColor: 'rgb(75, 192, 192)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

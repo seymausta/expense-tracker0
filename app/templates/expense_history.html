@@ -5,19 +5,10 @@ Expenses
 {% endblock %}
 
 {% block content %}
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-{% for message in messages %}
-<div class="alert alert-success alert-dismissible show" role="alert">
-    {{ message }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-{% endfor %}
-{% endif %}
-{% endwith %}
-{% if expenses %}
+<a href="{{ url_for('expenses')}}" class="btn btn-outline-secondary btn-sm">Back</a>
 <h1 class="fw-bolder text-center my-4">Expenses</h1>
 <div class="container">
+    {% if expenses %}
     <div class="table-responsive">
         <table class="table table-hover">
             <thead class="table-light">
@@ -75,63 +66,61 @@ Expenses
                         </div>
                     </div>
 
-                    <!-- Update Modal -->
-                    <div class="modal fade" id="updateModal{{ expense.id }}" tabindex="-1"
-                         aria-labelledby="updateModalLabel{{ expense.id }}" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="updateModalLabel{{ expense.id }}">Update Expense</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <!-- Your Update Form Goes Here -->
-                                    <form action="{{ url_for('update_expense', expense_id=expense.id) }}"
-                                          method="post">
-                                        {{ form.hidden_tag() }}
-                                        <div class="mb-3">
-                                            <label for="name" class="form-label">Name</label>
-                                            <input type="text" class="form-control" id="name" name="name"
-                                                   value="{{ expense.name }}">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="amount" class="form-label">Amount</label>
-                                            <input type="text" class="form-control" id="amount" name="amount"
-                                                   value="{{ expense.amount }}">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="category" class="form-label">Category</label>
-                                            <select class="form-select" id="category" name="category">
-                                                {% for category_id, category_name in form.category.choices %}
-                                                {% if category_id == form.category.data %}
-                                                <option value="{{ category_id }}" selected>{{ category_name }}</option>
-                                                {% else %}
-                                                <option value="{{ category_id }}">{{ category_name }}</option>
-                                                {% endif %}
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="date" class="form-label">Date</label>
-                                            <input type="date" class="form-control" id="date" name="date"
-                                                   value="{{ expense.date }}">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="description" class="form-label">Description</label>
-                                            <textarea class="form-control" id="description" name="description">{{ expense.description }}</textarea>
-                                        </div>
-                                        {{ form.submit(class="btn btn-primary") }}
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                 </td>
             </tr>
+                    <!-- Update Modal -->
+<div class="modal fade" id="updateModal{{ expense.id }}" tabindex="-1"
+     aria-labelledby="updateModalLabel{{ expense.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateModalLabel{{ expense.id }}">Update Expense</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Update Form -->
+                <form action="{{ url_for('update_expense', expense_id=expense.id) }}"
+                      method="post">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" name="name"
+                               value="{{ expense.name }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Amount</label>
+                        <input type="text" class="form-control" id="amount" name="amount"
+                               value="{{ expense.amount }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" id="category" name="category">
+                            {% for category_id, category_name in form.category.choices %}
+                                <option value="{{ category_id }}" {% if category_id == expense.category_id %} selected {% endif %}>{{ category_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="date" name="date"
+                               value="{{ expense.date }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description">{{ expense.description }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
             {% endfor %}
             </tbody>
         </table>
+
     </div>
 </div>
     {% else %}

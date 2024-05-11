@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, DecimalField, DateField, SelectField, TextAreaField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, DecimalField, DateField, SelectField, \
+    TextAreaField, FloatField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo,  Length, NumberRange
 import sqlalchemy as sa
 from wtforms.widgets import HiddenInput
@@ -52,26 +53,16 @@ class UpdateExpenseForm(FlaskForm):
     date = DateField('Date', validators=[DataRequired()])
     description = TextAreaField('Description')
     submit = SubmitField('Update')
-    delete = SubmitField('Delete', widget=HiddenInput())
 
-    def __init__(self, expense, *args, **kwargs):
+    def __init__(self, expense=None, *args, **kwargs):
         super(UpdateExpenseForm, self).__init__(*args, **kwargs)
-        self.expense = expense
-        self.category.choices = [(category.id, category.name) for category in Category.query.all()]
-        self.populate_form_fields()
-
-    def populate_form_fields(self):
-        self.name.data = self.expense.name
-        self.amount.data = self.expense.amount
-        self.category.data = self.expense.category_id
-        self.date.data = self.expense.date
-        self.description.data = self.expense.description
-
-        print("Expense Name:", self.expense.name)
-        print("Expense Amount:", self.expense.amount)
-        print("Expense Category ID:", self.expense.category_id)
-        print("Expense Date:", self.expense.date)
-        print("Expense Description:", self.expense.description)
+        if expense:
+            self.name.data = expense.name
+            self.amount.data = expense.amount
+            self.category.choices = [(category.id, category.name) for category in Category.query.all()]
+            self.category.data = expense.category_id
+            self.date.data = expense.date
+            self.description.data = expense.description
 
     def validate_category(self, category):
         if not Category.query.get(category.data):
@@ -95,3 +86,9 @@ class ResetPasswordForm(FlaskForm):
     password2 = PasswordField(
         'Repeat Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Request Password Reset')
+
+class BudgetForm(FlaskForm):
+    name = StringField('Income Name', validators=[DataRequired()])
+    amount = FloatField('Amount', validators=[DataRequired(), NumberRange(min=0)])
+    date = DateField('Date', validators=[DataRequired()])
+    submit = SubmitField('Add Income')

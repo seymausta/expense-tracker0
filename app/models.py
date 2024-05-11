@@ -4,6 +4,8 @@ from time import time
 import jwt
 import sqlalchemy as sa
 import sqlalchemy.orm as so
+from sqlalchemy.orm import relationship
+
 from app import db, app
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
@@ -21,6 +23,7 @@ class User(UserMixin,db.Model):
     password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(256))
     expenses: so.WriteOnlyMapped['Expense'] = so.relationship(
         back_populates='user',passive_deletes=True)
+    incomes = so.relationship("Income", back_populates='user')
 
     def __repr__(self):
         return '<User {}>'.format(self.email)
@@ -72,6 +75,20 @@ class Expense(db.Model):
     def __repr__(self):
         return '<Expense {}>'.format(self.name)
 
+class Income(db.Model):
+    __tablename__ = 'income'
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    name: so.Mapped[str] = so.mapped_column(sa.String(100), nullable=False)
+    amount: so.Mapped[float] = so.mapped_column(sa.Float, nullable=False)
+    date: so.Mapped[datetime] = so.mapped_column(sa.Date, nullable=False)
+    user_id: so.Mapped[int] = so.mapped_column(db.ForeignKey('users.id'), nullable=False)
+
+    user: so.Mapped[User]= so.relationship(back_populates='incomes')
+
+    def __repr__(self):
+        return f"Income(id={self.id}, name={self.name}, amount={self.amount}, user_id={self.user_id})"
+
 @login.user_loader
 def load_user(id):
     return db.session.get(User, int(id))
+

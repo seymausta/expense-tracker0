@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}
+Budget
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4 fw-bolder text-center">Budget</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <button type="button" class="btn btn-outline-secondary mb-4 d-block mx-auto" data-bs-toggle="modal"
+                    data-bs-target="#addBudgetModal">
+                Add New Income
+            </button>
+
+            <div class="card shadow-sm border-0 rounded-4 p-4">
+                {% if incomes %}
+                <h2 class="my-4 fw-bolder ">Your Income</h2>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for income in incomes %}
+                        <tr>
+                            <td>{{ income.name }}</td>
+                            <td>{{ income.amount }}</td>
+                            <td>{{ income.date }}</td>
+                        </tr>
+
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p class="fw-bold text-center">You don't have any income yet 😥</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="addBudgetModal" tabindex="-1" aria-labelledby="addBudgetModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addBudgetModalLabel">Add New Budget</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post">
+                    {{ form.hidden_tag() }}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            {{ form.name.label }}
+                            {{ form.name(class="form-control") }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.amount.label }}
+                            {{ form.amount(class="form-control") }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.date.label }}
+                            {{ form.date(class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+    {% endblock %}

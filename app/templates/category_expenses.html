@@ -31,11 +31,7 @@
             </tbody>
         </table>
     </div>
-    {% else %}
-    <p class="fw-bold text-center">No expenses found 😥</p>
-    {% endif %}
-</div>
-<!-- Tablonun altına sayfalama düğmelerini ve numaralarını ekle -->
+    <!-- Tablonun altına sayfalama düğmelerini ve numaralarını ekle -->
 <nav aria-label="Page navigation example">
   <ul class="pagination justify-content-center">
     {% if prev_url %}
@@ -65,5 +61,10 @@
     {% endif %}
   </ul>
 </nav>
+    {% else %}
+    <p class="fw-bold text-center">No expenses found 😥</p>
+    {% endif %}
+    <a href="{{ url_for('categories')}}" class="btn btn-outline-secondary btn-sm">Back To Categories</a>
+</div>
 
 {% endblock %}
