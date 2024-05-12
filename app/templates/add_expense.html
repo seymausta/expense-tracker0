@@ -6,7 +6,7 @@
 
 {% block content %}
     <div class="container">
-        <a href="{{ url_for('expenses')}}" class="btn btn-outline-secondary btn-sm">Back</a>
+        <a href="{{ url_for('main.expenses')}}" class="btn btn-outline-secondary btn-sm">Back</a>
         <h1 class="fw-bolder text-center mb-4">Add Expense</h1>
         <form method="post">
             {{ form.hidden_tag() }}
