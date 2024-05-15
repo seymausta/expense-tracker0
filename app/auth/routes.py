@@ -1,11 +1,11 @@
 from flask import render_template, redirect, url_for, flash, request
 from urllib.parse import urlsplit
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user, current_user, login_required
 import sqlalchemy as sa
 from app import db
 from app.auth import bp
 from app.auth.forms import LoginForm, RegistrationForm, \
-    ResetPasswordRequestForm, ResetPasswordForm
+    ResetPasswordRequestForm, ResetPasswordForm, ChangePasswordForm
 from app.models import User
 from app.auth.email import send_password_reset_email
 
@@ -76,3 +76,4 @@ def reset_password(token):
         flash('Your password has been reset.')
         return redirect(url_for('auth.login'))
     return render_template('auth/reset_password.html', form=form)
+

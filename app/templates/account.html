@@ -8,32 +8,40 @@ Account
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-                <!-- Delete Account Button -->
-                    <div class="text-end mt-3">
-                        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal"
-                            data-bs-target="#deleteAccountModal">Delete Account</button>
-                    </div>
+            <!-- Delete Account Button -->
+            <div class="text-end mt-3">
+                <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#deleteAccountModal">Delete Account
+                </button>
+            </div>
             <div class="card shadow-sm border-0 rounded-4 p-4">
                 <div class="card-body">
                     <h1 class="fw-bolder text-center mb-4">Account Information</h1>
                     <form method="post" action="{{ url_for('main.account') }}">
-                        {{ form.hidden_tag() }}
+                        {{ account_form.hidden_tag() }}
                         <div class="mb-3">
                             <label for="firstname" class="form-label">First Name</label>
                             <input type="text" class="form-control" id="firstname" name="firstname"
-                                value="{{ form.firstname.data }}" required>
+                                   value="{{ account_form.firstname.data }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="lastname" class="form-label">Last Name</label>
                             <input type="text" class="form-control" id="lastname" name="lastname"
-                                value="{{ form.lastname.data }}" required>
+                                   value="{{ account_form.lastname.data }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Email Address</label>
-                            <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" readonly>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   value="{{ current_user.email }}" readonly>
                         </div>
-                        {{ form.submit(class="btn btn-secondary btn-lg d-block mx-auto") }}
+                        {{ account_form.submit(class="btn btn-secondary btn-lg d-block mx-auto") }}
                     </form>
+                    <!-- Account sayfasında şifre değiştirme için modal düğmesi -->
+                    <br>
+                    <button type="button" class="btn btn-outline-secondary d-block mx-auto" data-bs-toggle="modal"
+                            data-bs-target="#changePasswordModal">
+                        Change Password
+                    </button>
                 </div>
             </div>
         </div>
@@ -41,9 +49,54 @@ Account
 
 </div>
 
+<!-- Şifre değiştirme modalı -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Şifre değiştirme formu -->
+                <form action="{{ url_for('main.account') }}" method="post">
+                    {{ password_form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label for="old_password" class="form-label">{{ password_form.old_password.label }}</label><br>
+                        {{ password_form.old_password(size=32, class="form-control") }}<br>
+                        {% for error in password_form.old_password.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">{{ password_form.new_password.label }}</label><br>
+                        {{ password_form.new_password(size=32, class="form-control") }}<br>
+                        {% for error in password_form.new_password.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">{{ password_form.confirm_password.label
+                            }}</label><br>
+                        {{ password_form.confirm_password(size=32, class="form-control") }}<br>
+                        {% for error in password_form.confirm_password.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="modal-footer">
+                        {{ password_form.submit(class="btn btn-outline-success") }}
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Delete Account Modal -->
 <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel"
-    aria-hidden="true">
+     aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">

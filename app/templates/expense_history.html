@@ -27,7 +27,7 @@ Expenses
                 <td>{{ expense.name }}</td>
                 <td>{{ expense.amount }}</td>
                 <td>{{ category_dict[expense.category_id] }}</td>
-                <td>{{ expense.date }}</td>
+                <td>{{ expense.date.strftime('%d %b %Y') }}</td>
                 <td>{{ expense.description }}</td>
                 <td>
                     <div class="btn-group" role="group">

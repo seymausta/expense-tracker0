@@ -32,7 +32,8 @@ Budget
                         <tr>
                             <td>{{ income.name }}</td>
                             <td>{{ income.amount }}</td>
-                            <td>{{ income.date }}</td>
+                            <td>{{ income.date.strftime('%d %b %Y') }}</td>
+
                         </tr>
 
                         {% endfor %}
@@ -72,7 +73,7 @@ Budget
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
+                        <button type="submit" class="btn btn-outline-success">{{ form.submit.label }}</button>
                     </div>
                 </form>
             </div>

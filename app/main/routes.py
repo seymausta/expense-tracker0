@@ -3,6 +3,8 @@ from datetime import datetime,timedelta
 from sqlalchemy import func
 from app import db
 from flask import render_template, flash, redirect, url_for, request, abort, jsonify, current_app
+
+from app.auth.forms import ChangePasswordForm
 from app.main.forms import ExpenseForm, UpdateAccountForm, AddCategoryForm, \
     BudgetForm
 from flask_login import current_user, login_required
@@ -126,17 +128,33 @@ def categories():
 @bp.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
-    form = UpdateAccountForm()
-    if form.validate_on_submit():
-        current_user.firstname = form.firstname.data
-        current_user.lastname = form.lastname.data
+    account_form = UpdateAccountForm()
+    password_form = ChangePasswordForm()
+
+    if account_form.validate_on_submit():
+        current_user.firstname = account_form.firstname.data
+        current_user.lastname = account_form.lastname.data
         db.session.commit()
         flash('Your account has been updated!', 'success')
         return redirect(url_for('main.account'))
+
+    elif request.method == 'POST' and password_form.validate():
+        current_user.set_password(password_form.new_password.data)
+        db.session.commit()
+        flash('Your password has been changed!', 'success')
+        return redirect(url_for('main.account'))
+
+    elif request.method == 'POST':
+        flash('Passwords do not match!', 'danger')
+        account_form.firstname.data = current_user.firstname
+        account_form.lastname.data = current_user.lastname
+
     elif request.method == 'GET':
-        form.firstname.data = current_user.firstname
-        form.lastname.data = current_user.lastname
-    return render_template('account.html', title='Account', form=form)
+        account_form.firstname.data = current_user.firstname
+        account_form.lastname.data = current_user.lastname
+
+    return render_template('account.html', title='Account', account_form=account_form, password_form=password_form)
+
 
 
 @bp.route('/category/<int:category_id>/expenses')
