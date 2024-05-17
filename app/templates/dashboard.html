@@ -13,34 +13,34 @@ Dashboard
             <h2 class="my-4 fw-bolder ">Your Expenses</h2>
             <div class="row row-cols-1 row-cols-md-4 g-4">
                 <div class="col">
-                    <div class="card">
+                    <div class="card custom-bg">
                         <div class="card-body text-center">
                             <h5 class="card-title ">Remainly Income</h5>
-                            <p class="card-text">{{ total_spend_week }}</p>
+                            <p class="card-text">{{ total_last_month_income }}{{ ' $' }}</p>
                         </div>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="card">
+                    <div class="card custom-bg">
                         <div class="card-body text-center">
                             <h5 class="card-title ">Total Yearly Spend</h5>
-                            <p class="card-text">{{ total_spend_year }}</p>
+                            <p class="card-text">{{ total_spend_year }}{{ ' $' }}</p>
                         </div>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="card">
+                    <div class="card custom-bg">
                         <div class="card-body text-center">
                             <h5 class="card-title ">Total Monthly Spending</h5>
-                            <p class="card-text">{{ total_spend_month }}</p>
+                            <p class="card-text">{{ total_spend_month }}{{ ' $' }}</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="card mb-4">
+                <div class="card custom-bg">
                     <div class="card-body text-center">
                         <h5 class="card-title">Total Weekly Spend</h5>
-                        <p class="card-text">{{ total_spend_week }}</p>
+                        <p class="card-text">{{ total_spend_week }}{{ ' $' }}</p>
                     </div>
                 </div>
             </div>
@@ -61,11 +61,11 @@ Dashboard
                 <tbody>
                 {% for expense in last_five_expenses %}
                 <tr>
-                    <td>{{ expense.name }}</td>
-                    <td>{{ expense.amount }}</td>
-                    <td>{{ category_dict[expense.category_id] }}</td>
+                    <td>{{ expense.name|capitalize }}</td>
+                    <td>{{ expense.amount }}{{ ' $' }}</td>
+                    <td>{{ category_dict[expense.category_id]|capitalize }}</td>
                     <td>{{ expense.date.strftime('%d %b %Y') }}</td>
-                    <td>{{ expense.description }}</td>
+                    <td>{{ expense.description|capitalize }}</td>
                 </tr>
                 {% endfor %}
                 </tbody>
@@ -76,23 +76,35 @@ Dashboard
         {% endif %}
 
         <!-- Grafik için canvas elementi -->
-<div class="row justify-content">
-    <h2 class="my-4 fw-bolder">Weekly Spending</h2>
-    <div class="col-lg-8">
-        <canvas id="weeklySpendingChart" width="400" height="200"></canvas>
-    </div>
-</div>
-
-<br>
-<h2 class="my-4 fw-bolder">Monthly Spending</h2>
-<div class="row justify-content">
-    <div class=class="col-lg-8">
-        <div class="chart-container" style="position: relative; height:45vh">
-            <canvas id="monthlyChart"></canvas>
+        <div class="row">
+            <h2 class="my-4 fw-bolder">Weekly Spending</h2>
+            <div class="col-lg-8">
+                <canvas id="weeklySpendingChart" width="400" height="200"></canvas>
+            </div>
         </div>
-    </div>
-</div>
 
+        <br>
+        <h2 class="my-4 fw-bolder">Monthly Spending</h2>
+        <div class="row">
+            <div class=class="col-lg-8">
+                <div class="chart-container" style="position: relative; height:45vh">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <br>
+        <h2 class="my-4 fw-bolder">Spending Habits</h2>
+        <div class="col-12">
+            <div class="chart-container" style="position: relative; height:50vh">
+                <canvas id="bubbleChart"></canvas>
+            </div>
+        </div>
+        <h2 class="my-4 fw-bolder">Expense Distribution by Category</h2>
+        <div class="col-lg-6">
+            <div class="chart-container" style="position: relative; height:60vh">
+                <canvas id="donutChart" width="400" height="400"></canvas>
+            </div>
+        </div>
 
     </div>
 </div>
@@ -107,7 +119,7 @@ Dashboard
         fetch('/weekly_spending')
             .then(response => response.json())
             .then(data => {
-                // Grafik için veri alma ve görselleştirme
+                // Haftalık harcama grafiği
                 var ctx = document.getElementById('weeklySpendingChart').getContext('2d');
                 var weeklySpendingChart = new Chart(ctx, {
                     type: 'line',
@@ -131,30 +143,179 @@ Dashboard
                 });
             });
         fetch('/monthly_spending')
-        .then(response => response.json())
-        .then(data => {
-            // Grafik için veri alma ve görselleştirme
-            var ctx = document.getElementById('monthlyChart').getContext('2d');
-            var monthlyChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(data),
-                    datasets: [{
-                        label: 'Monthly Spending',
-                        data: Object.values(data),
-                        backgroundColor: 'rgb(75, 192, 192)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
+            .then(response => response.json())
+            .then(data => {
+                // Aylık harcama grafiği
+                var ctx = document.getElementById('monthlyChart').getContext('2d');
+                var monthlyChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            barPercentage: 0.9,
+                            barThickness: 50,
+                            label: 'Monthly Spending',
+                            data: Object.values(data),
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(255, 159, 64, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(255, 205, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(201, 203, 207, 0.2)',
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(255, 159, 64, 0.2)',
+                                'rgba(75, 192, 192, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgb(255, 99, 132)',
+                                'rgba(255, 159, 64)',
+                                'rgb(54, 162, 235)',
+                                'rgb(153, 102, 255)',
+                                'rgb(255, 205, 86)',
+                                'rgb(75, 192, 192)',
+                                'rgb(54, 162, 235)',
+                                'rgb(153, 102, 255)',
+                                'rgb(201, 203, 207)',
+                                'rgb(255, 99, 132)',
+                                'rgb(255, 159, 64)',
+                                'rgb(75, 192, 192)'
+
+
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
                         }
                     }
-                }
+                });
             });
-        });
+        fetch('/bubble_chart_data')
+            .then(response => response.json())
+            .then(bubble_chart_json => {
+                bubble_chart_json.forEach(item => {
+                    item.x = parseFloat(item.x);
+                    item.y = parseInt(item.y);
+                    item.r = parseFloat(item.r);
+                });
+
+                var ctx = document.getElementById('bubbleChart').getContext('2d');
+                var bubbleChart = new Chart(ctx, {
+                    type: 'bubble',
+                    data: {
+                        labels: bubble_chart_json.map(item => item.category_name), // Kategori isimlerini etiket olarak ayarlar
+                        datasets: [{
+                            label: "Categories", // Tüm kategorileri birleştirerek label olarak ayarlar
+                            data: bubble_chart_json,
+                            backgroundColor: bubble_chart_json.map((_, index) => [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(255, 159, 64, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(255, 205, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(201, 203, 207, 0.2)',
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(255, 159, 64, 0.2)',
+                                'rgba(75, 192, 192, 0.2)'
+                            ][index % 12]),
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Total # of Expenses'
+                                },
+                                min: 0,
+                                max: 20,
+                                ticks: {
+                                    stepSize: 2
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Total $ Spent'
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        var item = bubble_chart_json[context.dataIndex];
+                                        var label = item.category_name || '';
+                                        return label + ': (Expenses: ' + context.parsed.y + ', Total Spent: $' + context.parsed.x + ')';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+
+        fetch('/expense_categories')
+            .then(response => response.json())
+            .then(data => {
+                var ctx = document.getElementById('donutChart').getContext('2d');
+                var donutChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.map(category => category.category_name),  // etiketler kategori isimlerini alır
+                        datasets: [{
+                            label: 'Expense Distribution by Category',
+                            data: data.map(category => category.total_amount),  // veri seti değerleri total_amount'tan alır
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.6)',
+                                'rgba(54, 162, 235, 0.6)',
+                                'rgba(255, 206, 86, 0.6)',
+                                'rgba(75, 192, 192, 0.6)',
+                                'rgba(153, 102, 255, 0.6)',
+                                'rgba(255, 159, 64, 0.6)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        cutout: '50%', // Yarım daire şeklindeki donut grafiği için iç kısmı oyuyoruz
+                        rotation: 270, // Yatayda yarım donut grafiği için
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                display: true  // Eğer isterseniz, efsane (legend) bölümünü gizleyebilirsiniz
+                            },
+                            title: {
+                                display: true,
+                                text: 'Expense Distribution by Category'
+                            },
+                            animation: {
+                                animateScale: true,
+                                animateRotate: true
+                            }
+                        },
+                        circumference: 180
+                    }
+                });
+            });
+
+
     });
 </script>
 {% endblock %}

@@ -30,8 +30,8 @@ Budget
                         <tbody>
                         {% for income in incomes %}
                         <tr>
-                            <td>{{ income.name }}</td>
-                            <td>{{ income.amount }}</td>
+                            <td>{{ income.name|capitalize }}</td>
+                            <td>{{ income.amount }}{{ ' $' }}</td>
                             <td>{{ income.date.strftime('%d %b %Y') }}</td>
 
                         </tr>

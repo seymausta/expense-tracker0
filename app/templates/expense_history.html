@@ -24,11 +24,11 @@ Expenses
             <tbody>
             {% for expense in expenses %}
             <tr>
-                <td>{{ expense.name }}</td>
-                <td>{{ expense.amount }}</td>
-                <td>{{ category_dict[expense.category_id] }}</td>
+                <td>{{ expense.name|capitalize }}</td>
+                <td>{{ expense.amount  }}{{ ' $' }}</td>
+                <td>{{ category_dict[expense.category_id]|capitalize }}</td>
                 <td>{{ expense.date.strftime('%d %b %Y') }}</td>
-                <td>{{ expense.description }}</td>
+                <td>{{ expense.description|capitalize }}</td>
                 <td>
                     <div class="btn-group" role="group">
                         <!-- Update Button -->

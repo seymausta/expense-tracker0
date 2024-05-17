@@ -10,6 +10,7 @@ from app.main.forms import ExpenseForm, UpdateAccountForm, AddCategoryForm, \
 from flask_login import current_user, login_required
 from app.models import User, Expense, Category, Income
 from app.main import bp
+import plotly.graph_objs as go
 
 @bp.route('/')
 @bp.route('/index')
@@ -145,7 +146,10 @@ def account():
         return redirect(url_for('main.account'))
 
     elif request.method == 'POST':
-        flash('Passwords do not match!', 'danger')
+        for field, errors in password_form.errors.items():
+            for error in errors:
+                flash(f"{error}", 'error')
+
         account_form.firstname.data = current_user.firstname
         account_form.lastname.data = current_user.lastname
 
@@ -156,13 +160,13 @@ def account():
     return render_template('account.html', title='Account', account_form=account_form, password_form=password_form)
 
 
-
 @bp.route('/category/<int:category_id>/expenses')
 @login_required
 def category_expenses(category_id):
     category = Category.query.get_or_404(category_id)
-    expenses = category.expenses
+    expenses = Expense.query.filter_by(user_id=current_user.id, category_id=category_id).all()
     return render_template('category_expenses.html', title='Category Expenses', category=category, expenses=expenses)
+
 
 @bp.route('/delete_account', methods=['POST'])
 @login_required
@@ -181,11 +185,11 @@ def dashboard():
         return Expense.query.filter_by(user_id=current_user.id).order_by(Expense.date.desc()).limit(5).all()
 
     def total_spend_week(user_id):
-            # Haftanın başlangıç tarihini bulma
+        # Haftanın başlangıç tarihini bulma
         current_date = datetime.now()
         start_of_week = current_date - timedelta(days=current_date.weekday())
 
-            # Haftalık harcamaları sorgulama
+        # Haftalık harcamaları sorgulama
         total_weekly_spend = db.session.query(func.sum(Expense.amount)). \
             filter(Expense.user_id == user_id). \
             filter(Expense.date >= start_of_week).scalar()
@@ -193,7 +197,7 @@ def dashboard():
         return total_weekly_spend or 0
 
     def total_spend_year(user_id):
-            # İçinde bulunulan yıl için harcamaları sorgulama
+        # İçinde bulunulan yıl için harcamaları sorgulama
         total_yearly_spend = db.session.query(func.sum(Expense.amount)). \
             filter(Expense.user_id == user_id). \
             filter(func.extract('year', Expense.date) == datetime.now().year).scalar()
@@ -201,7 +205,7 @@ def dashboard():
         return total_yearly_spend or 0
 
     def total_spend_month(user_id):
-            # İçinde bulunulan ay için harcamaları sorgulama
+        # İçinde bulunulan ay için harcamaları sorgulama
         total_monthly_spend = db.session.query(func.sum(Expense.amount)). \
             filter(Expense.user_id == user_id). \
             filter(func.extract('year', Expense.date) == datetime.now().year). \
@@ -209,6 +213,17 @@ def dashboard():
 
         return total_monthly_spend or 0
 
+    def total_income_last_month(user_id):
+        # Bir önceki ay için gelirleri sorgulama
+        last_month = datetime.now().month if datetime.now().month > 1 else 12
+        last_year = datetime.now().year if last_month != 12 else datetime.now().year
+
+        total_last_month_income = db.session.query(func.sum(Income.amount)). \
+            filter(Income.user_id == user_id). \
+            filter(func.extract('year', Income.date) == last_year). \
+            filter(func.extract('month', Income.date) == last_month).scalar()
+
+        return total_last_month_income or 0
 
     categories = Category.query.all()
     category_dict = {category.id: category.name for category in categories}
@@ -217,11 +232,12 @@ def dashboard():
     total_spend_week = total_spend_week(current_user.id)
     total_spend_month = total_spend_month(current_user.id)
     total_spend_year = total_spend_year(current_user.id)
+    total_last_month_income = total_income_last_month(current_user.id)
 
     return render_template('dashboard.html', title='Dashboard', last_five_expenses=last_five_expenses,
-                               total_spend_week=total_spend_week, total_spend_month=total_spend_month,
-                               total_spend_year=total_spend_year, category_dict=category_dict,
-                               weekly_spending=weekly_spending, form=form)
+                           total_spend_week=total_spend_week, total_spend_month=total_spend_month,
+                           total_spend_year=total_spend_year, total_last_month_income=total_last_month_income,
+                           category_dict=category_dict, form=form)
 
 @bp.route('/weekly_spending')
 def weekly_spending():
@@ -284,5 +300,75 @@ def budget():
         db.session.commit()
         flash('Income added successfully!', 'success')
         return redirect(url_for('main.budget'))
-    incomes = Income.query.all()
+    incomes = Income.query.filter_by(user_id=current_user.id).all()
     return render_template('budget.html', title='Budget', form=form, incomes=incomes)
+
+
+@bp.route('/monthly_income', methods=['GET'])
+@login_required
+def monthly_income():
+    # En son yılı ve ayı al
+    current_date = datetime.now()
+    year = current_date.year
+    month = current_date.month
+
+    # Kullanıcının belirtilen yıl ve ay için gelirlerini hesapla
+    total_income = db.session.query(func.sum(Income.amount)).filter(
+        Income.user_id == current_user.id,
+        func.extract('year', Income.date) == year,
+        func.extract('month', Income.date) == month
+    ).scalar()
+
+    total_income = total_income or 0
+
+    return render_template('dashboard.html', title='Monthly Income', total_income=total_income)
+
+@bp.route('/bubble_chart_data')
+@login_required
+def bubble_chart_data():
+    # Kullanıcının harcamalarını alın
+    user_expenses = Expense.query.filter_by(user_id=current_user.id).all()
+
+    # Kategorilere göre harcamaları gruplandırın
+    category_expenses = {}
+    for expense in user_expenses:
+        category_id = expense.category_id
+        if category_id not in category_expenses:
+            category_expenses[category_id] = {
+                'total_amount': 0,
+                'expense_count': 0
+            }
+        category_expenses[category_id]['total_amount'] += expense.amount
+        category_expenses[category_id]['expense_count'] += 1
+
+    # Her kategori için balon grafik için veri noktası oluşturun
+    bubble_chart_data = []
+    for category_id, data in category_expenses.items():
+        category = Category.query.get(category_id)
+        bubble_chart_data.append({
+            'x':data['total_amount'] ,  # Harcama sayısı x ekseninde
+            'y': data['expense_count'],   # Toplam harcama miktarı y ekseninde
+            'r': 10,                     # Balon boyutunu istediğiniz gibi ayarlayabilirsiniz
+            'category_name': category.name
+        })
+
+
+    return jsonify(bubble_chart_data)
+
+
+@bp.route('/expense_categories', methods=['GET'])
+@login_required
+def expense_categories():
+    # Kullanıcının harcama kategorilerini al
+    categories = Category.query.all()
+
+    # Her bir kategori için toplam harcamayı hesapla
+    category_expenses = []
+    for category in categories:
+        total_expense = db.session.query(func.sum(Expense.amount)).filter_by(category_id=category.id, user_id=current_user.id).scalar() or 0
+        category_expenses.append({
+            'category_name': category.name,
+            'total_amount': total_expense  # total_expense yerine total_amount kullanıyoruz
+        })
+
+    return jsonify(category_expenses)

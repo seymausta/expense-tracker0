@@ -40,6 +40,20 @@
                         {% for error in form.password.errors %}
                             <div class="invalid-feedback">{{ error }}</div>
                         {% endfor %}
+                        {% if form.password.errors %}
+                            {% if 'Password must be at least 8 characters long' not in form.password.errors %}
+                                <div class="invalid-feedback">Password must be at least 8 characters long</div>
+                            {% endif %}
+                            {% if 'Password must contain at least one lowercase letter' not in form.password.errors %}
+                                <div class="invalid-feedback">Password must contain at least one lowercase letter</div>
+                            {% endif %}
+                            {% if 'Password must contain at least one uppercase letter' not in form.password.errors %}
+                                <div class="invalid-feedback">Password must contain at least one uppercase letter</div>
+                            {% endif %}
+                            {% if 'Password must contain at least one digit' not in form.password.errors %}
+                                <div class="invalid-feedback">Password must contain at least one digit</div>
+                            {% endif %}
+                        {% endif %}
                     </div>
                     <div class="form-floating mb-3">
                         {{ form.password2(size=32, class="form-control", placeholder="Re-enter your password...") }}

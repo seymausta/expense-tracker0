@@ -22,12 +22,12 @@ Account
                         <div class="mb-3">
                             <label for="firstname" class="form-label">First Name</label>
                             <input type="text" class="form-control" id="firstname" name="firstname"
-                                   value="{{ account_form.firstname.data }}" required>
+                                   value="{{ account_form.firstname.data|capitalize  }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="lastname" class="form-label">Last Name</label>
                             <input type="text" class="form-control" id="lastname" name="lastname"
-                                   value="{{ account_form.lastname.data }}" required>
+                                   value="{{ account_form.lastname.data|capitalize  }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Email Address</label>

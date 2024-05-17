@@ -45,7 +45,12 @@ def register():
         db.session.commit()
         flash('Congratulations, you are now a registered user!')
         return redirect(url_for('auth.login'))
-    return render_template('auth/register.html', title='Register', form=form)
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"{error}", 'error')
+        return render_template('auth/register.html', title='Register', form=form)
+
 
 @bp.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():

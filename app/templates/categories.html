@@ -47,7 +47,7 @@ Spend Categories
         <div class="col">
             <div class="card h-100 border-0">
                 <a href="{{ url_for('main.category_expenses', category_id=category.id) }}" class="card-body d-flex align-items-center justify-content-center text-decoration-none" style="color: inherit;">
-                    <p class="card-text m-0 fw-bold">{{ category.name }}</p>
+                    <p class="card-text m-0 fw-bold">{{ category.name|capitalize }}</p>
                 </a>
             </div>
         </div>
@@ -92,6 +92,7 @@ Spend Categories
 <style>
     .card {
         transition: all 0.3s ease; /* Düzgün bir geçiş sağlar */
+         background-color: rgba(255, 205, 86, 0.2);
     }
 
     .card:hover {
