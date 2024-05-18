@@ -1,6 +1,7 @@
+import json
 from collections import defaultdict
 from datetime import datetime,timedelta
-from sqlalchemy import func
+from sqlalchemy import func, extract
 from app import db
 from flask import render_template, flash, redirect, url_for, request, abort, jsonify, current_app
 
@@ -372,3 +373,78 @@ def expense_categories():
         })
 
     return jsonify(category_expenses)
+
+@bp.route('/report')
+@login_required
+def expense_report():
+    user_id = current_user.id
+    categories = Category.query.all()
+    current_year = datetime.now().year
+
+    # İçerisinde bulunulan yıl için harcamaları hesaplayın
+    spending_trends_table = {}
+    totals = [0] * len(categories)  # Her kategori için toplam harcamaların saklandığı liste
+    grand_total = 0  # Tüm kategorilerin toplam harcaması
+
+    for month in range(1, 13):
+        month_name = datetime.strptime(str(month), "%m").strftime("%B")  # Ay adını alın
+        expenses = []
+
+        # Her kategori için harcama miktarını alın
+        for i, category in enumerate(categories):
+            category_expenses = Expense.query.filter(
+                Expense.category_id == category.id,
+                Expense.user_id == user_id,
+                func.strftime('%Y', Expense.date) == str(current_year),
+                func.strftime('%m', Expense.date) == str(month).zfill(2)
+            ).all()
+            total_expense = sum(expense.amount for expense in category_expenses)
+            expenses.append(total_expense)
+            totals[i] += total_expense
+            grand_total += total_expense
+
+        # Toplam harcamayı ayın adı ile birlikte kaydedin
+        spending_trends_table[month_name] = expenses
+    return render_template('report.html',spending_trends_table=spending_trends_table, categories=categories, totals=totals,current_year=current_year, grand_total=grand_total)
+
+
+@bp.route('/monthly_report', methods=['GET', 'POST'])
+@login_required
+def monthly_report():
+    if request.method == 'POST':
+        selected_year = int(request.form.get('year', datetime.now().year))
+    else:
+        selected_year = datetime.now().year
+
+    # Seçilen yıldaki her ayın tarihini al
+    expense_dates = [datetime(selected_year, month, 1).strftime('%B') for month in range(1, 13)]
+
+    # Seçilen yıla ait tüm harcamaları getir
+    expenses = Expense.query.filter(
+        Expense.user_id == current_user.id,
+        extract('year', Expense.date) == selected_year
+    ).all()
+
+    # Kategori adlarını içeren bir sözlük oluştur
+    category_dict = {}
+    for category in Category.query.all():
+        category_dict[category.id] = category.name
+
+    # Seçilen yıla ait her ay için toplam harcamaları hesapla
+    monthly_expense_totals = []
+    for month in range(1, 13):
+        total_expense = Expense.query.with_entities(func.sum(Expense.amount)).filter(
+            Expense.user_id == current_user.id,
+            extract('year', Expense.date) == selected_year,
+            extract('month', Expense.date) == month
+        ).scalar() or 0
+        monthly_expense_totals.append(total_expense)
+
+    year = datetime.now().year
+
+    return render_template('monthly_report.html',
+                           expense_dates=expense_dates,
+                           selected_year=selected_year,
+                           expenses=expenses, year=year,
+                           category_dict=category_dict,
+                           monthly_expense_totals=monthly_expense_totals)
