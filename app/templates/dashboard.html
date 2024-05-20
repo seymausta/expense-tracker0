@@ -4,6 +4,7 @@
 Dashboard
 {% endblock %}
 
+
 {% block content %}
 
 <div class="container">
@@ -75,34 +76,25 @@ Dashboard
         <p class="fw-bold text-center">You don't have any expenses yet 😥</p>
         {% endif %}
 
-        <!-- Grafik için canvas elementi -->
-        <div class="row">
-            <h2 class="my-4 fw-bolder">Weekly Spending</h2>
-            <div class="col-lg-8">
-                <canvas id="weeklySpendingChart" width="400" height="200"></canvas>
-            </div>
-        </div>
-
-        <br>
-        <h2 class="my-4 fw-bolder">Monthly Spending</h2>
-        <div class="row">
-            <div class=class="col-lg-8">
-                <div class="chart-container" style="position: relative; height:45vh">
-                    <canvas id="monthlyChart"></canvas>
-                </div>
-            </div>
-        </div>
-        <br>
+            <br>
         <h2 class="my-4 fw-bolder">Spending Habits</h2>
         <div class="col-12">
             <div class="chart-container" style="position: relative; height:50vh">
                 <canvas id="bubbleChart"></canvas>
             </div>
         </div>
-        <h2 class="my-4 fw-bolder">Expense Distribution by Category</h2>
-        <div class="col-lg-6">
-            <div class="chart-container" style="position: relative; height:60vh">
-                <canvas id="donutChart" width="400" height="400"></canvas>
+
+        <!-- Grafik için canvas elementi -->
+        <div class="row">
+            <h2 class="my-4 fw-bolder">Weekly Spending</h2>
+            <canvas id="weeklySpendingChart" width="800" height="200"></canvas>
+        </div>
+
+        <br>
+        <h2 class="my-4 fw-bolder">Monthly Spending</h2>
+        <div class="row">
+            <div class="col-12">
+                <canvas id="monthlyChart" width="800" height="300"></canvas>
             </div>
         </div>
 
@@ -129,7 +121,7 @@ Dashboard
                             label: 'Total spending per week of the last 4 weeks',
                             data: data.map(week => week.amount),
                             fill: false,
-                            borderColor: 'rgb(75, 192, 192)',
+                            borderColor: 'rgb(54, 162, 235)',
                             tension: 0.1
                         }]
                     },
@@ -145,17 +137,19 @@ Dashboard
         fetch('/monthly_spending')
             .then(response => response.json())
             .then(data => {
-                // Aylık harcama grafiği
-                var ctx = document.getElementById('monthlyChart').getContext('2d');
-                var monthlyChart = new Chart(ctx, {
+                const ctx = document.getElementById('monthlyChart').getContext('2d');
+
+                // Aylık harcamaları ve ayları almak
+                const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const amounts = labels.map(month => data[month]);
+
+                new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: Object.keys(data),
+                        labels: labels,
                         datasets: [{
-                            barPercentage: 0.9,
-                            barThickness: 50,
                             label: 'Monthly Spending',
-                            data: Object.values(data),
+                            data: amounts,
                             backgroundColor: [
                                 'rgba(255, 99, 132, 0.2)',
                                 'rgba(255, 159, 64, 0.2)',
@@ -168,8 +162,8 @@ Dashboard
                                 'rgba(201, 203, 207, 0.2)',
                                 'rgba(255, 99, 132, 0.2)',
                                 'rgba(255, 159, 64, 0.2)',
-                                'rgba(75, 192, 192, 0.2)'
-                            ],
+                                'rgba(75, 192, 192, 0.2)'],
+
                             borderColor: [
                                 'rgb(255, 99, 132)',
                                 'rgba(255, 159, 64)',
@@ -183,13 +177,13 @@ Dashboard
                                 'rgb(255, 99, 132)',
                                 'rgb(255, 159, 64)',
                                 'rgb(75, 192, 192)'
-
-
                             ],
                             borderWidth: 1
                         }]
                     },
                     options: {
+                        responsive: true, // Responsive özelliği
+                        maintainAspectRatio: false,
                         scales: {
                             y: {
                                 beginAtZero: true

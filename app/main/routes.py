@@ -1,17 +1,16 @@
-import json
+
 from collections import defaultdict
 from datetime import datetime,timedelta
 from sqlalchemy import func, extract
 from app import db
 from flask import render_template, flash, redirect, url_for, request, abort, jsonify, current_app
-
 from app.auth.forms import ChangePasswordForm
 from app.main.forms import ExpenseForm, UpdateAccountForm, AddCategoryForm, \
     BudgetForm
 from flask_login import current_user, login_required
 from app.models import User, Expense, Category, Income
 from app.main import bp
-import plotly.graph_objs as go
+
 
 @bp.route('/')
 @bp.route('/index')
@@ -58,7 +57,8 @@ def expense_history():
 
     page = request.args.get('page', 1, type=int)
     per_page = current_app.config['EXPENSES_PER_PAGE']
-    pagination = Expense.query.filter_by(user_id=current_user.id).paginate(page=page, per_page=per_page, error_out=False)
+
+    pagination = Expense.query.filter_by(user_id=current_user.id).order_by(Expense.date.desc()).paginate(page=page, per_page=per_page,error_out=False)
     expenses = pagination.items
 
     total_pages = pagination.pages
@@ -259,8 +259,8 @@ def weekly_spending():
 
         # Haftalık harcama miktarını sözlüğe ekleme
         weekly_spending.append({
-            'start_of_week': start_of_week.strftime('%b %d'),
-            'end_of_week': end_of_week.strftime('%b %d'),
+            'start_of_week': start_of_week.strftime('%d %b'),
+            'end_of_week': end_of_week.strftime('%d %b'),
             'amount': weekly_spend or 0  # Harcama miktarı 0 ise None yerine 0 olarak ayarlanır
         })
 
@@ -271,11 +271,9 @@ def weekly_spending():
 def monthly_spending():
     monthly_spending = defaultdict(int)
 
-    # Şu anki yılın başlangıç tarihini al
+    # Şu anki yılın başlangıç ve bitiş tarihlerini al
     current_year = datetime.now().year
     start_of_year = datetime(current_year, 1, 1)
-
-    # Şu anki yılın bitiş tarihini al
     end_of_year = datetime(current_year, 12, 31)
 
     # Kullanıcının tüm harcamalarını al
@@ -284,10 +282,15 @@ def monthly_spending():
         Expense.date <= end_of_year
     ).all()
 
+    # Her ay için başlangıç değeri olarak 0 belirle
+    for month in range(1, 13):
+        month_key = datetime(current_year, month, 1).strftime('%b')
+        monthly_spending[month_key] = 0
+
     # Aylık harcamaları topla
     for expense in expenses:
-        monthly_key = expense.date.strftime('%b %Y')
-        monthly_spending[monthly_key] += expense.amount
+        month_key = expense.date.strftime('%b')
+        monthly_spending[month_key] += expense.amount
 
     # JSON formatında aylık harcama verilerini döndür
     return jsonify(monthly_spending)
@@ -374,9 +377,9 @@ def expense_categories():
 
     return jsonify(category_expenses)
 
-@bp.route('/report')
+@bp.route('/category_report')
 @login_required
-def expense_report():
+def category_report():
     user_id = current_user.id
     categories = Category.query.all()
     current_year = datetime.now().year
@@ -405,7 +408,7 @@ def expense_report():
 
         # Toplam harcamayı ayın adı ile birlikte kaydedin
         spending_trends_table[month_name] = expenses
-    return render_template('report.html',spending_trends_table=spending_trends_table, categories=categories, totals=totals,current_year=current_year, grand_total=grand_total)
+    return render_template('category_report.html',spending_trends_table=spending_trends_table, categories=categories, totals=totals,current_year=current_year, grand_total=grand_total)
 
 
 @bp.route('/monthly_report', methods=['GET', 'POST'])
@@ -419,11 +422,11 @@ def monthly_report():
     # Seçilen yıldaki her ayın tarihini al
     expense_dates = [datetime(selected_year, month, 1).strftime('%B') for month in range(1, 13)]
 
-    # Seçilen yıla ait tüm harcamaları getir
+    # Seçilen yıla ait tüm harcamaları en güncelden en eskiye sıralayarak getir
     expenses = Expense.query.filter(
         Expense.user_id == current_user.id,
         extract('year', Expense.date) == selected_year
-    ).all()
+    ).order_by(Expense.date.desc()).all()
 
     # Kategori adlarını içeren bir sözlük oluştur
     category_dict = {}
@@ -448,3 +451,10 @@ def monthly_report():
                            expenses=expenses, year=year,
                            category_dict=category_dict,
                            monthly_expense_totals=monthly_expense_totals)
+
+@bp.route("/report", methods=["GET"])
+@login_required
+def report():
+    """View reports"""
+
+    return render_template("report.html")

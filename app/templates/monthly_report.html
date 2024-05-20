@@ -5,8 +5,12 @@ Monthly Report
 {% endblock %}
 
 {% block content %}
+<br>
 <div class="container">
-    <h1>Monthly Spending Report ({{ selected_year }})</h1>
+
+    <a href="{{ url_for('main.report')}}" class="btn btn-outline-secondary btn-sm">Back</a>
+
+    <h2 class="text-center">Yearly Spending Report ({{ selected_year }})</h2>
 <br>
     <form action="/monthly_report" method="post">
         <label for="year">Select a year:</label>
@@ -41,8 +45,8 @@ Monthly Report
             <tr>
                 <td>{{ expense.name|capitalize }}</td>
                 <td>{{ expense.amount }}{{ ' $' }}</td>
-                <td>{{ category_dict[expense.category] }}</td>
-                <td>{{ expense.date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ category_dict[expense.category_id] }}</td>
+                <td>{{ expense.date.strftime('%d %b %Y')  }}</td>
                 <td>{{ expense.description|capitalize }}</td>
             </tr>
             {% endfor %}
@@ -71,8 +75,10 @@ Monthly Report
                 datasets: [{
                     label: 'Monthly Expenses',
                     data: data,
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1
+                    borderColor: 'rgba(255, 159, 64, 0.5)',
+                    backgroundColor: 'rgba(255, 159, 64, 0.2)', // Çizgi altındaki renk
+                    tension: 0.1,
+                    fill: true // Çizgi altındaki alanın dolmasını sağlar
                 }]
             },
             options: {

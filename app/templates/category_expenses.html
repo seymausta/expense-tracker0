@@ -6,6 +6,8 @@
 
 {% block content %}
 <div class="container">
+    <br>
+    <a href="{{ url_for('main.categories')}}" class="btn btn-outline-secondary btn-sm">Back To Categories</a>
     <h1 class="my-4 fw-bolder text-center">{{ category.name }} Expenses</h1>
     {% if expenses %}
     <div class="table-responsive">
@@ -64,7 +66,7 @@
     {% else %}
     <p class="fw-bold text-center">No expenses found 😥</p>
     {% endif %}
-    <a href="{{ url_for('main.categories')}}" class="btn btn-outline-secondary btn-sm">Back To Categories</a>
+
 </div>
 
 {% endblock %}

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}
+Reports
+{% endblock %}
+
+{% block content %}
+<br>
+<a href="{{ url_for('main.report')}}" class="btn btn-outline-secondary btn-sm">Back</a>
+<h3 class="text-center my-4">Total Paid Per Month By Category ({{ current_year }})</h3>
+<br>
+<div class="row justify-content-center ">
+    <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+        <table class="table table-hover" id="scroll-table">
+            <thead class="table-light">
+            <tr>
+                <th class="sticky-top">Month</th>
+                {% for category in categories %}
+                <th class="sticky-top">{{ category.name }}</th>
+                {% endfor %}
+                <th class="sticky-top">Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for month, expenses in spending_trends_table.items() %}
+            <tr>
+                <td>{{ month }}</td>
+                {% for category_expense in expenses %}
+                {% if category_expense == 0 %}
+                <td>-</td>
+                {% else %}
+                <td>{{ '$' }}{{ category_expense }}</td>
+                {% endif %}
+                {% endfor %}
+                <td>{{ '$' }}{{ expenses | sum }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+            <tr>
+                <td></td>
+                {% for total in totals %}
+                {% if total == 0 %}
+                <td>-</td>
+                {% else %}
+                <td>{{ '$' }}{{ total }}</td>
+                {% endif %}
+                {% endfor %}
+                <td>{{ '$' }}{{ grand_total }}</td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+    <br>
+    <br>
+    <h3 class="my-4 text-center">Expense Distribution by Category</h3>
+    <div class="col-lg-4">
+        <div class="chart-container" style="position: relative; height:60vh">
+            <canvas id="donutChart" width="400" height="400"></canvas>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        fetch('/expense_categories')
+            .then(response => response.json())
+            .then(data => {
+                var ctx = document.getElementById('donutChart').getContext('2d');
+                var donutChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.map(category => category.category_name),  // etiketler kategori isimlerini alır
+                        datasets: [{
+                            label: 'Expense Distribution by Category',
+                            data: data.map(category => category.total_amount),  // veri seti değerleri total_amount'tan alır
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.6)',
+                                'rgba(54, 162, 235, 0.6)',
+                                'rgba(255, 206, 86, 0.6)',
+                                'rgba(75, 192, 192, 0.6)',
+                                'rgba(153, 102, 255, 0.6)',
+                                'rgba(255, 159, 64, 0.6)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        cutout: '50%', // Yarım daire şeklindeki donut grafiği için iç kısmı oyuyoruz
+                        rotation: 270, // Yatayda yarım donut grafiği için
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                display: true  // Eğer isterseniz, efsane (legend) bölümünü gizleyebilirsiniz
+                            },
+                            title: {
+                                display: true,
+                                text: 'Expense Distribution by Category'
+                            },
+                            animation: {
+                                animateScale: true,
+                                animateRotate: true
+                            }
+                        },
+                        circumference: 180
+                    }
+                });
+            });
+
+
+    });
+</script>
+{% endblock %}
+}

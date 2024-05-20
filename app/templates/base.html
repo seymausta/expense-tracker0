@@ -22,33 +22,27 @@
 
     {% block styles %}
     <style>
-        /* Footer stilini belirle */
-        footer {
-            background-color: #626364; /* Açık gri arka plan rengi */
-            border-radius: 15px; /* Köşeleri yumuşat */
-        }
-
-        /* Footer içeriğini ayarla */
-        footer .container {
-            padding-left: 15px;
-            padding-right: 15px;
-        }
-
-        /* Footer içeriğindeki metin rengini ayarla */
-        footer .small {
-            color: #6c757d; /* Metin rengi */
-        }
-
-        .custom-bg {
-        background-color: rgba(153, 102, 255, 0.2); /* Arka plan rengini özelleştirin */
+    /* Footer stilini belirle */
+    footer {
+        background-color: #C9A1D0ED; /* Açık gri arka plan rengi */
+        border-radius: 15px; /* Köşeleri yumuşat */
     }
 
-    </style>
+    /* Footer içeriğindeki metin rengini ayarla */
+    footer .small {
+        color: #6c757d; /* Metin rengi */
+    }
+
+    .custom-bg {
+        background-color: rgba(153, 102, 255, 0.2); /* Arka plan rengini özelleştirin */
+    }
+</style>
+
     {% endblock %}
 </head>
 <body>
 {% include "navbar.html" %}
-<hr>
+
 {% with messages = get_flashed_messages() %}
 {% if messages %}
 {% for message in messages %}
@@ -70,22 +64,21 @@
     {% block main %}{% endblock %}
 </main>
 
-<footer class="bg-white py-4 fixed-bottom"> <!-- fixed-bottom sınıfı footer'ı altta sabit kılar -->
+<footer class="bg-white py-3 fixed-bottom"> <!-- py-2 sınıfı padding-y'yi (üst ve alt) azaltır -->
     <div class="container px-5">
         <div class="row align-items-center justify-content-between flex-column flex-sm-row">
             <div class="col-auto">
                 <div class="small m-0">Copyright &copy; Expense Tracker 2024</div>
             </div>
             <div class="col-auto">
-                <a class="small" href="#!">Privacy</a>
-                <span class="mx-1">&middot;</span>
-                <a class="small" href="#!">Terms</a>
-                <span class="mx-1">&middot;</span>
-                <a class="small" href="#!">Contact</a>
+                <div class="small m-0">Created by <a href="https://github.com/seymausta" target="_blank">@seymausta</a>
+                    for Edu4tech Python Course
+                </div>
             </div>
         </div>
     </div>
 </footer>
+
 
 
 {% block scripts %}
