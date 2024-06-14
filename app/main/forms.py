@@ -5,7 +5,7 @@ from wtforms.validators import ValidationError, DataRequired, Email, EqualTo,  L
 import sqlalchemy as sa
 from wtforms.widgets import HiddenInput
 from app import db
-from app.models import User, Category, Expense
+from app.models import User, Category, Expense, Payment
 
 
 class ExpenseForm(FlaskForm):
@@ -16,14 +16,20 @@ class ExpenseForm(FlaskForm):
     description = TextAreaField('Description')
     submit = SubmitField('Add')
     delete = SubmitField('Delete', widget=HiddenInput())
+    payment = SelectField('Payment Method', coerce=int, validators=[DataRequired()])
 
     def __init__(self, *args, **kwargs):
         super(ExpenseForm, self).__init__(*args, **kwargs)
         self.category.choices = [(category.id, category.name) for category in Category.query.all()]
+        self.payment.choices = [(payment.id, payment.name) for payment in Payment.query.all()]
 
     def validate_category(self, category):
         if not Category.query.get(category.data):
             raise ValidationError('Invalid category.')
+
+    def validate_payment(self, payment):
+        if not Payment.query.get(payment.data):
+            raise ValidationError('Invalid payment method.')
 
 class UpdateExpenseForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired(), Length(max=140)])
@@ -32,6 +38,7 @@ class UpdateExpenseForm(FlaskForm):
     date = DateField('Date', validators=[DataRequired()])
     description = TextAreaField('Description')
     submit = SubmitField('Update')
+    payment_method = SelectField('Payment Method', coerce=int, validators=[DataRequired()])
 
     def __init__(self, expense=None, *args, **kwargs):
         super(UpdateExpenseForm, self).__init__(*args, **kwargs)
@@ -40,12 +47,19 @@ class UpdateExpenseForm(FlaskForm):
             self.amount.data = expense.amount
             self.category.choices = [(category.id, category.name) for category in Category.query.all()]
             self.category.data = expense.category_id
+            self.payment_method.choices = [(payment.id, payment.name) for payment in
+                                           Payment.query.all()]  # Ödeme yöntemi seçim alanının seçenekleri
+            self.payment_method.data = expense.payment_id  # Düzenlenen harcamanın mevcut ödeme yöntemi
             self.date.data = expense.date
             self.description.data = expense.description
 
     def validate_category(self, category):
         if not Category.query.get(category.data):
             raise ValidationError('Invalid category.')
+
+    def validate_payment(self, payment):
+        if not Payment.query.get(payment.data):
+            raise ValidationError('Invalid payment method.')
 
 class UpdateAccountForm(FlaskForm):
     firstname = StringField('First Name', validators=[DataRequired()])

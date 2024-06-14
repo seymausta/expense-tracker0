@@ -17,6 +17,7 @@
                     <th>Name</th>
                     <th>Amount</th>
                     <th>Date</th>
+                    <th>Payment Method</th>
                     <th>Description</th>
                 </tr>
             </thead>
@@ -26,6 +27,7 @@
                     <td>{{ expense.name|capitalize }}</td>
                     <td>{{ expense.amount }}{{ ' $' }}</td>
                     <td>{{ expense.date.strftime('%d %b %Y') }}</td>
+                    <td>{{ expense.payment.name }}</td>
                     <td>{{ expense.description|capitalize }}</td>
 
                 </tr>

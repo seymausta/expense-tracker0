@@ -36,6 +36,7 @@ Monthly Report
                 <th>Name</th>
                 <th>Amount</th>
                 <th>Category</th>
+                <th>Payment Method</th>
                 <th>Date</th>
                 <th>Description</th>
             </tr>
@@ -46,6 +47,7 @@ Monthly Report
                 <td>{{ expense.name|capitalize }}</td>
                 <td>{{ expense.amount }}{{ ' $' }}</td>
                 <td>{{ category_dict[expense.category_id] }}</td>
+                <td>{{ payment_dict[expense.payment_id] }}</td>
                 <td>{{ expense.date.strftime('%d %b %Y')  }}</td>
                 <td>{{ expense.description|capitalize }}</td>
             </tr>

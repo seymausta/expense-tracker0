@@ -7,60 +7,84 @@ Reports
 {% block content %}
 <br>
 <a href="{{ url_for('main.report')}}" class="btn btn-outline-secondary btn-sm">Back</a>
+<div class="row justify-content-center ">
 <h3 class="text-center my-4">Total Paid Per Month By Category ({{ current_year }})</h3>
 <br>
-<div class="row justify-content-center ">
-    <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
-        <table class="table table-hover" id="scroll-table">
-            <thead class="table-light">
-            <tr>
-                <th class="sticky-top">Month</th>
-                {% for category in categories %}
-                <th class="sticky-top">{{ category.name }}</th>
-                {% endfor %}
-                <th class="sticky-top">Total</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for month, expenses in spending_trends_table.items() %}
-            <tr>
-                <td>{{ month }}</td>
-                {% for category_expense in expenses %}
-                {% if category_expense == 0 %}
-                <td>-</td>
-                {% else %}
-                <td>{{ '$' }}{{ category_expense }}</td>
-                {% endif %}
-                {% endfor %}
-                <td>{{ '$' }}{{ expenses | sum }}</td>
-            </tr>
+<div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+    <table class="table table-hover" id="scroll-table">
+        <thead class="table-light">
+        <tr>
+            <th class="sticky-top">Month</th>
+            {% for category in categories %}
+            <th class="sticky-top">{{ category.name }}</th>
             {% endfor %}
-            </tbody>
-            <tfoot>
-            <tr>
-                <td></td>
-                {% for total in totals %}
-                {% if total == 0 %}
+            <th class="sticky-top">Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for month, expenses in category_spending_trends_table.items() %}
+        <tr>
+            <td>{{ month }}</td>
+            {% for category_expense in expenses['expenses'] %}
+            {% if category_expense == 0 %}
                 <td>-</td>
                 {% else %}
-                <td>{{ '$' }}{{ total }}</td>
-                {% endif %}
-                {% endfor %}
-                <td>{{ '$' }}{{ grand_total }}</td>
-            </tr>
-            </tfoot>
-        </table>
-    </div>
-    <br>
-    <br>
-    <h3 class="my-4 text-center">Expense Distribution by Category</h3>
-    <div class="col-lg-4">
-        <div class="chart-container" style="position: relative; height:60vh">
-            <canvas id="donutChart" width="400" height="400"></canvas>
-        </div>
+            <td>{{ '$' }}{{ category_expense }}</td>
+            {% endif %}
+            {% endfor %}
+            <td>{{ '$' }}{{ expenses['total'] }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<br>
+<br>
+<h3 class="my-4 text-center">Expense Distribution by Category</h3>
+<div class="col-lg-4">
+    <div class="chart-container" style="position: relative; height:60vh">
+        <canvas id="donutChart" width="400" height="400"></canvas>
     </div>
 </div>
-
+<br>
+<br>
+<h3 class="text-center my-4">Total Paid Per Payment Method ({{ current_year }})</h3>
+<div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+    <table class="table table-hover" id="scroll-table-2">
+        <thead class="table-light">
+        <tr>
+            <th class="sticky-top">Month</th>
+            {% for payment_method in payment_methods %}
+            <th class="sticky-top">{{ payment_method.name }}</th>
+            {% endfor %}
+            <th class="sticky-top">Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for month, expenses in payment_method_spending_trends_table.items() %}
+        <tr>
+            <td>{{ month }}</td>
+            {% for payment_expense in expenses['expenses'] %}
+            {% if payment_expense == 0 %}
+                <td>-</td>
+                {% else %}
+            <td>{{ '$' }}{{ payment_expense }}</td>
+            {% endif %}
+            {% endfor %}
+            <td>{{ '$' }}{{ expenses['total'] }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+    <br>
+    <h3 class="my-4 text-center">Expense Distribution by Payment Methods</h3>
+    <div class="col-lg-4">
+        <div class="chart-container" style="position: relative; height:60vh">
+            <canvas id="expenseChart" width="400" height="400"></canvas>
+        </div>
+    </div>
+   </div>
 {% endblock %}
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -106,6 +130,41 @@ Reports
                             }
                         },
                         circumference: 180
+                    }
+                });
+            });
+        fetch('/expense_pie_chart')
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('expenseChart').getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Expense by Payment Method',
+                            data: data.data,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.5)',
+                                'rgba(54, 162, 235, 0.5)',
+                                'rgba(255, 206, 86, 0.5)',
+                                'rgba(75, 192, 192, 0.5)',
+                                'rgba(153, 102, 255, 0.5)',
+                                'rgba(255, 159, 64, 0.5)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true
                     }
                 });
             });

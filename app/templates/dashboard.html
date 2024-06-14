@@ -55,6 +55,7 @@ Dashboard
                     <th>Name</th>
                     <th>Amount</th>
                     <th>Category</th>
+                    <th>Payment Method</th>
                     <th>Date</th>
                     <th>Description</th>
                 </tr>
@@ -65,6 +66,7 @@ Dashboard
                     <td>{{ expense.name|capitalize }}</td>
                     <td>{{ expense.amount }}{{ ' $' }}</td>
                     <td>{{ category_dict[expense.category_id]|capitalize }}</td>
+                    <td>{{ payment_dict[expense.payment_id] }}</td>
                     <td>{{ expense.date.strftime('%d %b %Y') }}</td>
                     <td>{{ expense.description|capitalize }}</td>
                 </tr>
@@ -76,11 +78,18 @@ Dashboard
         <p class="fw-bold text-center">You don't have any expenses yet 😥</p>
         {% endif %}
 
-            <br>
+        <br>
         <h2 class="my-4 fw-bolder">Spending Habits</h2>
         <div class="col-12">
             <div class="chart-container" style="position: relative; height:50vh">
                 <canvas id="bubbleChart"></canvas>
+            </div>
+        </div>
+        <br>
+        <h2 class="my-4 fw-bolder">Payment Methods</h2>
+        <div class="col-lg-4">
+            <div class="chart-container" style="position: relative; height:50vh">
+                <canvas id="expenseChart" width="400" height="400"></canvas>
             </div>
         </div>
 
@@ -305,6 +314,41 @@ Dashboard
                             }
                         },
                         circumference: 180
+                    }
+                });
+            });
+        fetch('/expense_pie_chart')
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('expenseChart').getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Expense by Payment Method',
+                            data: data.data,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.5)',
+                                'rgba(54, 162, 235, 0.5)',
+                                'rgba(255, 206, 86, 0.5)',
+                                'rgba(75, 192, 192, 0.5)',
+                                'rgba(153, 102, 255, 0.5)',
+                                'rgba(255, 159, 64, 0.5)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true
                     }
                 });
             });

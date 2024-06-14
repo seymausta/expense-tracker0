@@ -8,7 +8,7 @@ from app.auth.forms import ChangePasswordForm
 from app.main.forms import ExpenseForm, UpdateAccountForm, AddCategoryForm, \
     BudgetForm
 from flask_login import current_user, login_required
-from app.models import User, Expense, Category, Income
+from app.models import User, Expense, Category, Income, Payment
 from app.main import bp
 
 
@@ -27,6 +27,7 @@ def add_expense():
                 name=form.name.data,
                 amount=form.amount.data,
                 category_id=form.category.data,
+                payment_id=form.payment.data,
                 date=form.date.data,
                 description=form.description.data,
                 user_id=current_user.id  # Kullanıcının kimliği
@@ -55,6 +56,9 @@ def expense_history():
     categories = Category.query.all()
     category_dict = {category.id: category.name for category in categories}
 
+    payments = Payment.query.all()
+    payment_dict = {payment.id: payment.name for payment in payments}
+
     page = request.args.get('page', 1, type=int)
     per_page = current_app.config['EXPENSES_PER_PAGE']
 
@@ -72,7 +76,7 @@ def expense_history():
     next_url = url_for('main.expense_history', page=current_page + 1) if pagination.has_next else None
 
     return render_template('expense_history.html', title='Expenses', expenses=expenses,
-                           category_dict=category_dict, form=form,
+                           category_dict=category_dict, form=form,payment_dict=payment_dict,
                            prev_url=prev_url, next_url=next_url, page_nums=page_nums, current_page=current_page)
 
 @bp.route('/delete_expense/<int:expense_id>', methods=['POST'])
@@ -97,6 +101,7 @@ def update_expense(expense_id):
         expense.name = form.name.data
         expense.amount = form.amount.data
         expense.category_id = form.category.data
+        expense.payment_id = form.payment.data
         expense.date = form.date.data
         expense.description = form.description.data
 
@@ -188,7 +193,7 @@ def dashboard():
     def total_spend_week(user_id):
         # Haftanın başlangıç tarihini bulma
         current_date = datetime.now()
-        start_of_week = current_date - timedelta(days=current_date.weekday())
+        start_of_week = current_date - timedelta(days=current_date.weekday()+1)
 
         # Haftalık harcamaları sorgulama
         total_weekly_spend = db.session.query(func.sum(Expense.amount)). \
@@ -229,6 +234,9 @@ def dashboard():
     categories = Category.query.all()
     category_dict = {category.id: category.name for category in categories}
 
+    payments = Payment.query.all()
+    payment_dict = {payment.id: payment.name for payment in payments}
+
     last_five_expenses = last_five_expenses()
     total_spend_week = total_spend_week(current_user.id)
     total_spend_month = total_spend_month(current_user.id)
@@ -238,7 +246,7 @@ def dashboard():
     return render_template('dashboard.html', title='Dashboard', last_five_expenses=last_five_expenses,
                            total_spend_week=total_spend_week, total_spend_month=total_spend_month,
                            total_spend_year=total_spend_year, total_last_month_income=total_last_month_income,
-                           category_dict=category_dict, form=form)
+                           category_dict=category_dict,payment_dict=payment_dict, form=form)
 
 @bp.route('/weekly_spending')
 def weekly_spending():
@@ -381,35 +389,69 @@ def expense_categories():
 @login_required
 def category_report():
     user_id = current_user.id
-    categories = Category.query.all()
     current_year = datetime.now().year
 
-    # İçerisinde bulunulan yıl için harcamaları hesaplayın
+    # Kategorilere göre harcamaları hesaplayın
+    category_spending_trends_table = calculate_category_spending_trends(user_id, current_year)
+
+    # Ödeme yöntemlerine göre harcamaları hesaplayın
+    payment_method_spending_trends_table = calculate_payment_method_spending_trends(user_id, current_year)
+
+    categories = Category.query.all()
+
+    # Ödeme yöntemlerini al
+    payment_methods = Payment.query.all()
+
+    return render_template('category_report.html',
+                           category_spending_trends_table=category_spending_trends_table,
+                           payment_method_spending_trends_table=payment_method_spending_trends_table,
+                           current_year=current_year,categories =categories,payment_methods=payment_methods)
+
+def calculate_category_spending_trends(user_id, current_year):
+    categories = Category.query.all()
     spending_trends_table = {}
-    totals = [0] * len(categories)  # Her kategori için toplam harcamaların saklandığı liste
-    grand_total = 0  # Tüm kategorilerin toplam harcaması
 
     for month in range(1, 13):
-        month_name = datetime.strptime(str(month), "%m").strftime("%B")  # Ay adını alın
-        expenses = []
+        month_name = datetime.strptime(str(month), "%m").strftime("%B")
+        category_expenses = []
 
-        # Her kategori için harcama miktarını alın
-        for i, category in enumerate(categories):
-            category_expenses = Expense.query.filter(
+        for category in categories:
+            category_expense = Expense.query.filter(
                 Expense.category_id == category.id,
                 Expense.user_id == user_id,
                 func.strftime('%Y', Expense.date) == str(current_year),
                 func.strftime('%m', Expense.date) == str(month).zfill(2)
             ).all()
-            total_expense = sum(expense.amount for expense in category_expenses)
-            expenses.append(total_expense)
-            totals[i] += total_expense
-            grand_total += total_expense
+            total_expense = sum(expense.amount for expense in category_expense)
+            category_expenses.append(total_expense)
 
-        # Toplam harcamayı ayın adı ile birlikte kaydedin
-        spending_trends_table[month_name] = expenses
-    return render_template('category_report.html',spending_trends_table=spending_trends_table, categories=categories, totals=totals,current_year=current_year, grand_total=grand_total)
+        total_monthly_expense = sum(category_expenses)
+        spending_trends_table[month_name] = {'expenses': category_expenses, 'total': total_monthly_expense}
 
+    return spending_trends_table
+
+def calculate_payment_method_spending_trends(user_id, current_year):
+    payment_methods = Payment.query.all()
+    spending_trends_table = {}
+
+    for month in range(1, 13):
+        month_name = datetime.strptime(str(month), "%m").strftime("%B")
+        payment_method_expenses = []
+
+        for payment_method in payment_methods:
+            payment_expense = Expense.query.filter(
+                Expense.payment_id == payment_method.id,
+                Expense.user_id == user_id,
+                func.strftime('%Y', Expense.date) == str(current_year),
+                func.strftime('%m', Expense.date) == str(month).zfill(2)
+            ).all()
+            total_expense = sum(expense.amount for expense in payment_expense)
+            payment_method_expenses.append(total_expense)
+
+        total_monthly_expense = sum(payment_method_expenses)
+        spending_trends_table[month_name] = {'expenses': payment_method_expenses, 'total': total_monthly_expense}
+
+    return spending_trends_table
 
 @bp.route('/monthly_report', methods=['GET', 'POST'])
 @login_required
@@ -433,6 +475,10 @@ def monthly_report():
     for category in Category.query.all():
         category_dict[category.id] = category.name
 
+    payment_dict = {}
+    for payment in Payment.query.all():
+        payment_dict[payment.id] = payment.name
+
     # Seçilen yıla ait her ay için toplam harcamaları hesapla
     monthly_expense_totals = []
     for month in range(1, 13):
@@ -450,6 +496,7 @@ def monthly_report():
                            selected_year=selected_year,
                            expenses=expenses, year=year,
                            category_dict=category_dict,
+                           payment_dict=payment_dict,
                            monthly_expense_totals=monthly_expense_totals)
 
 @bp.route("/report", methods=["GET"])
@@ -458,3 +505,21 @@ def report():
     """View reports"""
 
     return render_template("report.html")
+
+@bp.route('/expense_pie_chart')
+@login_required
+def expense_pie_chart():
+    # Kullanıcının harcamalarını ödeme yöntemine göre gruplayın
+    expenses_by_payment = db.session.query(Expense.payment_id, func.sum(Expense.amount)).\
+        filter_by(user_id=current_user.id).group_by(Expense.payment_id).all()
+
+    # Harcanan toplam tutarları ödeme yöntemine göre alın
+    payment_labels = []
+    payment_amounts = []
+    for payment_id, total_amount in expenses_by_payment:
+        payment_name = Payment.query.get(payment_id).name  # Ödeme yöntemi adını al
+        payment_labels.append(payment_name)
+        payment_amounts.append(total_amount)
+
+    # JSON olarak verileri döndür
+    return jsonify(labels=payment_labels, data=payment_amounts)

@@ -17,6 +17,7 @@ Expenses
                 <th>Name</th>
                 <th>Amount</th>
                 <th>Category</th>
+                <th>Payment Method</th>
                 <th>Date</th>
                 <th>Description</th>
                 <th>Actions</th>
@@ -26,8 +27,9 @@ Expenses
             {% for expense in expenses %}
             <tr>
                 <td>{{ expense.name|capitalize }}</td>
-                <td>{{ expense.amount  }}{{ ' $' }}</td>
+                <td>{{ expense.amount }}{{ ' $' }}</td>
                 <td>{{ category_dict[expense.category_id]|capitalize }}</td>
+                <td>{{ payment_dict[expense.payment_id] }}</td>
                 <td>{{ expense.date.strftime('%d %b %Y') }}</td>
                 <td>{{ expense.description|capitalize }}</td>
                 <td>
@@ -70,92 +72,104 @@ Expenses
 
                 </td>
             </tr>
-                    <!-- Update Modal -->
-<div class="modal fade" id="updateModal{{ expense.id }}" tabindex="-1"
-     aria-labelledby="updateModalLabel{{ expense.id }}" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="updateModalLabel{{ expense.id }}">Update Expense</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+            <!-- Update Modal -->
+            <div class="modal fade" id="updateModal{{ expense.id }}" tabindex="-1"
+                 aria-labelledby="updateModalLabel{{ expense.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="updateModalLabel{{ expense.id }}">Update Expense</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Update Form -->
+                            <form action="{{ url_for('main.update_expense', expense_id=expense.id) }}"
+                                  method="post">
+                                {{ form.hidden_tag() }}
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Name</label>
+                                    <input type="text" class="form-control" id="name" name="name"
+                                           value="{{ expense.name }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="amount" class="form-label">Amount</label>
+                                    <input type="text" class="form-control" id="amount" name="amount"
+                                           value="{{ expense.amount }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="category" class="form-label">Category</label>
+                                    <select class="form-select" id="category" name="category">
+                                        {% for category_id, category_name in form.category.choices %}
+                                        <option value="{{ category_id }}" {% if category_id== expense.category_id %}
+                                                selected {% endif %}>{{ category_name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="payment" class="form-label">Payment Method</label>
+                                    <select class="form-select" id="payment" name="payment">
+                                        {% for payment_id, payment_name in form.payment.choices %}
+                                        <option value="{{ payment_id }}" {% if payment_id== expense.payment_id %}
+                                                selected {% endif %}>{{ payment_name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="date" class="form-label">Date</label>
+                                    <input type="date" class="form-control" id="date" name="date"
+                                           value="{{ expense.date }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" name="description">{{ expense.description }}</textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Update</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body">
-                <!-- Update Form -->
-                <form action="{{ url_for('main.update_expense', expense_id=expense.id) }}"
-                      method="post">
-                    {{ form.hidden_tag() }}
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="name" name="name"
-                               value="{{ expense.name }}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="amount" class="form-label">Amount</label>
-                        <input type="text" class="form-control" id="amount" name="amount"
-                               value="{{ expense.amount }}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="category" class="form-label">Category</label>
-                        <select class="form-select" id="category" name="category">
-                            {% for category_id, category_name in form.category.choices %}
-                                <option value="{{ category_id }}" {% if category_id == expense.category_id %} selected {% endif %}>{{ category_name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="date" class="form-label">Date</label>
-                        <input type="date" class="form-control" id="date" name="date"
-                               value="{{ expense.date }}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description">{{ expense.description }}</textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Update</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
             {% endfor %}
             </tbody>
         </table>
 
     </div>
 </div>
-    {% else %}
-    <p class="fw-bold text-center">You don't have any expenses yet 😥</p>
-    {% endif %}
+{% else %}
+<p class="fw-bold text-center">You don't have any expenses yet 😥</p>
+{% endif %}
 <!-- Tablonun altına sayfalama düğmelerini ve numaralarını ekle -->
 <nav aria-label="Page navigation example">
-  <ul class="pagination justify-content-center">
-    {% if prev_url %}
-      <li class="page-item">
-        <a class="page-link" href="{{ prev_url }}">&larr; Older</a>
-      </li>
-    {% else %}
-      <li class="page-item disabled">
-        <span class="page-link">&larr; Older</span>
-      </li>
-    {% endif %}
+    <ul class="pagination justify-content-center">
+        {% if prev_url %}
+        <li class="page-item">
+            <a class="page-link" href="{{ prev_url }}">&larr; Older</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">&larr; Older</span>
+        </li>
+        {% endif %}
 
-    {% for page_num in page_nums %}
-      <li class="page-item{% if page_num == current_page %} active{% endif %}">
-        <a class="page-link" href="{{ url_for('main.expense_history', page=page_num) }}">{{ page_num }}</a>
-      </li>
-    {% endfor %}
+        {% for page_num in page_nums %}
+        <li class="page-item{% if page_num == current_page %} active{% endif %}">
+            <a class="page-link" href="{{ url_for('main.expense_history', page=page_num) }}">{{ page_num }}</a>
+        </li>
+        {% endfor %}
 
-    {% if next_url %}
-      <li class="page-item">
-        <a class="page-link" href="{{ next_url }}">Newer &rarr;</a>
-      </li>
-    {% else %}
-      <li class="page-item disabled">
-        <span class="page-link">Newer &rarr;</span>
-      </li>
-    {% endif %}
-  </ul>
+        {% if next_url %}
+        <li class="page-item">
+            <a class="page-link" href="{{ next_url }}">Newer &rarr;</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Newer &rarr;</span>
+        </li>
+        {% endif %}
+    </ul>
 </nav>
 
 {% endblock %}

@@ -56,6 +56,15 @@ class Category(db.Model):
     def __repr__(self):
         return '<Category {}>'.format(self.name)
 
+class Payment(db.Model):
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    name: so.Mapped[str] = so.mapped_column(sa.String(140))
+    expenses = db.relationship('Expense', backref='payment', lazy=True)
+
+    def __repr__(self):
+        return '<Payment {}>'.format(self.name)
+
+
 class Expense(db.Model):
     __tablename__ = 'expenses'
 
@@ -69,6 +78,7 @@ class Expense(db.Model):
         index=True, default=lambda: datetime.now(timezone.utc))
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
                                                index=True)
+    payment_id: so.Mapped[Optional[int]] = so.mapped_column(sa.ForeignKey('payment.id'), nullable=True)
 
     user: so.Mapped[User] = so.relationship(back_populates='expenses')
 
@@ -87,6 +97,7 @@ class Income(db.Model):
 
     def __repr__(self):
         return f"Income(id={self.id}, name={self.name}, amount={self.amount}, user_id={self.user_id})"
+
 
 @login.user_loader
 def load_user(id):
