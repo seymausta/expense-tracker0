@@ -15,19 +15,19 @@ This project is a simple web application that allows users to track their expens
 
   ## Screenshots
 
-![Dashboard](images/2.png)
+![Dashboard](images/2.jpg)
 
-![Dashboard](images/3.png)
+![Dashboard](images/3.jpg)
 
-![Dashboard](images/4.png)
+![Dashboard](images/4.jpg)
 
-![Dashboard](images/5.png)
+![Dashboard](images/5.jpg)
 
-![Dashboard](images/6.png)
+![Dashboard](images/6.jpg)
 
-![Dashboard](images/7.png)
+![Dashboard](images/7.jpg)
 
-![Dashboard](images/8.png)
+![Dashboard](images/8.jpg)
 
 ![Dashboard](images/9.png)
 
