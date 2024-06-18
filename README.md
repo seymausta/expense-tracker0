@@ -2,8 +2,6 @@
 
 This project is a simple web application that allows users to track their expenses. The application is built using Python Flask, SQLite, and SQLAlchemy.
 
-![Screenshot](images/screenshot.png)
-
 ## Features
 
 - User Registration and Login
@@ -14,6 +12,34 @@ This project is a simple web application that allows users to track their expens
 - View Total Expenses and Incomes
 - Categorize Expenses and Incomes
 - View Expense Reports and Charts
+
+  ## Screenshots
+
+![Dashboard](images/2.png)
+
+![Dashboard](images/3.png)
+
+![Dashboard](images/4.png)
+
+![Dashboard](images/5.png)
+
+![Dashboard](images/6.png)
+
+![Dashboard](images/7.png)
+
+![Dashboard](images/8.png)
+
+![Dashboard](images/9.png)
+
+![Dashboard](images/10.png)
+
+![Dashboard](images/11.png)
+
+![Dashboard](images/12.png)
+
+![Dashboard](images/13.png)
+
+![Dashboard](images/14.png)
 
 ## Installation
 
